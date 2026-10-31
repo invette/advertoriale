@@ -292,6 +292,36 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 .cd b{font:800 22px/1 var(--fd);color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .cd small{font:600 9px/1 var(--fm);letter-spacing:.14em;text-transform:uppercase;color:#AEB6D6}
 .offer .fine.om{margin-top:-4px}
+
+/* Black Month */
+.bmbar{background:#05070F;color:#fff;border-bottom:1px solid #1E2440}
+.bmbar .in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:9px;min-width:0}
+.bmbar .t{display:flex;align-items:center;gap:10px;min-width:0;font-size:13px;line-height:1.3}
+.bmbar .t b{flex:none;font:900 12px/1 var(--fd);letter-spacing:.02em;text-transform:uppercase;color:#fff;background:#FF4D6D;border-radius:6px;padding:6px 8px}
+.bmbar .x{color:#C9D1F2;min-width:0}
+.bmbar em{font-style:normal;color:#fff;font-weight:650;white-space:nowrap}
+.bmbar a{flex:none;color:#05070F;background:#fff;border-radius:999px;padding:8px 14px;font:700 12px/1 var(--f);letter-spacing:.04em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+@media(max-width:620px){.bmbar .x{font-size:12px}.bmbar a{padding:8px 11px;font-size:11px}}
+.bmbar .xs{display:none;color:#fff;font-weight:650;white-space:nowrap}
+.bmbar a .sm{display:none}
+@media(max-width:600px){.bmbar .x{display:none}.bmbar .xs{display:inline}.bmbar a .lg{display:none}.bmbar a .sm{display:inline}.bmbar .t b{font-size:11px;padding:5px 7px}}
+.chip.bmchip{background:#05070F;border-color:#05070F;color:#fff}
+.chip.bmchip i{width:7px;height:7px;border-radius:50%;background:#FF4D6D;box-shadow:0 0 0 3px rgba(255,77,109,.3)}
+.bmhero{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-top:4px}
+.bmhero .cta{width:auto;min-height:54px;font-size:14px;padding:0 20px}
+.bmhero .sec{font:700 14px/1.2 var(--f);color:var(--ink);text-decoration:none;border-bottom:2px solid var(--ink);padding-bottom:2px}
+@media(max-width:480px){.bmhero .cta{width:100%}}
+.bmband{background:#05070F;color:#C9D1F2;margin-top:44px}
+.bmband .in{display:grid;gap:14px;padding-block:22px;align-items:center}
+.bmband .mono{color:#FF8FA3}
+.bmband p{margin:6px 0 0;font-size:16.5px;line-height:1.5;color:#E6EAFF}
+.bmband b{color:#fff}
+.bmband .cta{min-height:52px;font-size:13.5px;box-shadow:none}
+@media(min-width:700px){.bmband .in{grid-template-columns:1fr auto;gap:24px}.bmband .cta{width:auto}}
+.bmband + .reveal{margin-top:0}
+.bmlink{font-size:14px;line-height:1.45;color:var(--ink);text-decoration:none;text-align:center}
+.bmlink b{color:var(--btn);font-weight:700}
+.bmpill{flex:none;background:#05070F;color:#fff;border-radius:8px;padding:7px 8px;font:800 11px/1 var(--fd);letter-spacing:.02em}
 </style>
 <meta property="og:title" content="Kolana chrupią, słońca brak | Synthagen Journal">
 <meta property="og:description" content="Sztywne kolana rano, chrupanie przy przysiadzie i pół roku bez witaminy D ze słońca. Co dzieje się w stawie i o co pytać etykietę omegi.">
@@ -704,6 +734,38 @@ var fine=q('.offer .fine');
 if(fine&&promo()){var om=d.createElement('p');om.className='fine om';
   om.textContent='Najniższa cena z 30 dni przed obniżką: '+Object.keys(C.products).map(function(k){var pr=C.products[k];return (NM[pr.h]||k)+' '+zl(pr.p)+' za słoik'}).join(', ')+'.';
   fine.parentNode.insertBefore(om,fine.nextSibling)}
+/* Black Month: pasek, CTA w hero, baner w treści, link do konfiguratora */
+if(promo()){
+  var maxP=C.tiers.reduce(function(m,t){return Math.max(m,t[1])},0);
+  var BMURL=(C.bmUrl||'https://synthagenlabs.com/pages/black-month')+'?utm_source=advertorial&utm_medium=journal&utm_campaign=black-month&utm_content='+encodeURIComponent(C.slug);
+  var left=function(){var t=Math.max(0,Date.parse(C.promoEnd)-Date.now()),dd=Math.floor(t/86400000),hh=Math.floor(t%86400000/3600000);return dd+' dni '+hh+' godz.'};
+  var trk=function(where){return function(){try{(window.dataLayer=window.dataLayer||[]).push({event:'advertorial_bm_click',advertorial:C.slug,placement:where})}catch(_){}}};
+  var go=function(e){e.preventDefault();var o=q('#oferta');if(o)o.scrollIntoView({behavior:'smooth',block:'start'})};
+  /* 1. pasek na samej górze */
+  var ad=q('.adbar');
+  if(ad){var bmBarEl=d.createElement('div');bmBarEl.className='bmbar g';
+    bmBarEl.innerHTML='<div class="in wide"><span class="t"><b>Black Month</b><span class="x">Black Friday przez cały listopad · do −'+maxP+'% · koniec za <em data-bmleft>'+left()+'</em></span><span class="xs">do −'+maxP+'% · do 30.11</span></span><a href="'+BMURL+'" data-bm="topbar"><span class="lg">Oferta Black Month</span><span class="sm">Oferta</span> →</a></div>';
+    ad.parentNode.insertBefore(bmBarEl,ad);q('[data-bm="topbar"]',bmBarEl).addEventListener('click',trk('topbar'));
+    setInterval(function(){var e=q('[data-bmleft]');if(e)e.textContent=left()},30000)}
+  /* 2. hero: znaczek i dwa przyciski */
+  var eb=q('.hero .eyebrow');if(eb){var ch=d.createElement('span');ch.className='chip bmchip';ch.innerHTML='<i></i>Black Month do −'+maxP+'%';eb.insertBefore(ch,eb.firstChild)}
+  var hc=q('.hero .hero-copy')||q('.hero .in');
+  if(hc){var hb=d.createElement('div');hb.className='bmhero';
+    hb.innerHTML='<a class="cta" href="#oferta" data-bm="hero"><span>Zobacz ofertę Black Month</span><i aria-hidden="true">↓</i></a><a class="sec" href="'+BMURL+'" data-bm="hero-config">Zbuduj własny zestaw →</a>';
+    hc.appendChild(hb);q('[data-bm="hero"]',hb).addEventListener('click',function(e){trk('hero')();go(e)});q('[data-bm="hero-config"]',hb).addEventListener('click',trk('hero-config'))}
+  /* 3. baner przed wejściem produktu */
+  var rv=q('.reveal');
+  if(rv){var bd=d.createElement('div');bd.className='bmband g';
+    bd.innerHTML='<div class="in col"><div><span class="mono">Black Month · do 30.11</span><p>Im więcej słoików, tym wyższy rabat: <b>do −'+maxP+'%</b>. Rabat nalicza się sam w koszyku.</p></div><a class="cta" href="#oferta" data-bm="band"><span>Przejdź do oferty</span><i aria-hidden="true">↓</i></a></div>';
+    rv.parentNode.insertBefore(bd,rv);q('[data-bm="band"]',bd).addEventListener('click',function(e){trk('band')();go(e)})}
+  /* 4. w ofercie: link do konfiguratora */
+  var buy=q('.offer .buy');
+  if(buy){var cl=d.createElement('a');cl.className='bmlink';cl.href=BMURL;cl.setAttribute('data-bm','offer-config');
+    cl.innerHTML='Wolisz złożyć zestaw z różnych produktów? <b>Otwórz konfigurator Black Month →</b>';
+    var ctaEl=q('.cta',buy);ctaEl&&ctaEl.nextSibling?buy.insertBefore(cl,ctaEl.nextSibling):buy.appendChild(cl);cl.addEventListener('click',trk('offer-config'))}
+  /* 5. sticky: znaczek */
+  var stx=q('.sticky .in');if(stx){var sp=d.createElement('span');sp.className='bmpill';sp.textContent='BM −'+maxP+'%';stx.insertBefore(sp,stx.firstChild)}
+}
 var def=0;C.opts.forEach(function(o,i){if(o.def)def=i});paint();pick(def);sc();
 })();
 </script>
