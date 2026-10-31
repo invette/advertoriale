@@ -12,6 +12,7 @@ Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (stat
 | `/cukier/` | zjazd energii po obiedzie | GLUCO AGEPROTECT™ (+ PURE OXILLIGENCE™) |
 | `/po-antybiotyku/` | okres po antybiotykoterapii | GUT BALANCE™ (+ PURE BUTYRATE™) |
 | `/trening/` | dieta wysokobiałkowa, mało błonnika | PURE BUTYRATE™ (+ GUT BALANCE™) |
+| `/po-40/` | trzy procesy starzenia po 40-tce | zestaw PURE OXILLIGENCE™ + GLUCO AGEPROTECT™ + NOVA CELLCARE™ |
 | `/regeneracja/` | wolniejsza regeneracja, zmęczenie, longevity | PURE OXILLIGENCE™ (+ NOVA CELLCARE™) |
 
 Przycisk zakupu otwiera koszyk synthagenlabs.com (cart permalink) z wariantami „1 SZT” i atrybutem zamówienia `advertorial=<slug>`. Rabat Black Month (rabaty automatyczne Shopify, 1–30.11.2026) nalicza się w koszyku; progi są w `window.SGA.tiers` każdej strony.
