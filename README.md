@@ -1,6 +1,6 @@
 # Advertoriale Synthagen
 
-Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (static assets). Każdy push na `main` buduje i wdraża Worker `advertoriale` (`npx wrangler deploy`).
+Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (static assets) pod https://synthagen.co/<slug>/ (route `synthagen.co/*`; reguła przekierowania „do sklepu” w strefie synthagen.co obejmuje tylko `/` i `www`). Każdy push na `main` buduje i wdraża Worker `advertoriale` (`npx wrangler deploy`).
 
 | Ścieżka | Temat | Produkt |
 |---|---|---|

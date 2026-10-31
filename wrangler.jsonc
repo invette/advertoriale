@@ -1,6 +1,9 @@
 {
   "name": "advertoriale",
   "compatibility_date": "2025-09-01",
+  "routes": [
+    { "pattern": "synthagen.co/*", "zone_name": "synthagen.co" }
+  ],
   "assets": {
     "directory": "./public",
     "html_handling": "auto-trailing-slash",
