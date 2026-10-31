@@ -7,6 +7,7 @@ Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (stat
 | `/jelita/` | wzdęcia, ciężkość po posiłkach | GUT BALANCE™ (+ PURE BUTYRATE™) |
 | `/stawy/` | sztywne stawy, witamina D zimą | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
 | `/odpornosc/` | sezon przeziębień, witamina D zimą | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
+| `/serce-mozg/` | mało ryb w diecie, EPA i DHA | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
 | `/wlosy-skora/` | włosy, paznokcie, skóra | NOVA CELLCARE™ (+ PURE OXILLIGENCE™) |
 | `/cukier/` | zjazd energii po obiedzie | GLUCO AGEPROTECT™ (+ PURE OXILLIGENCE™) |
 | `/po-antybiotyku/` | okres po antybiotykoterapii | GUT BALANCE™ (+ PURE BUTYRATE™) |
