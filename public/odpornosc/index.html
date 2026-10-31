@@ -285,6 +285,13 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 .sticky .tx b{display:block;font:800 13px/1.15 var(--fd);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sticky .tx span{font-size:12.5px;color:var(--muted)}
 .sticky .cta{width:auto;min-height:48px;font-size:12.5px;padding:0 18px;box-shadow:none}
+
+/* licznik promocji */
+.cd{display:flex;gap:8px;justify-content:center;margin:4px 0 2px}
+.cd span{display:grid;justify-items:center;gap:4px;min-width:58px;background:var(--ink);color:#fff;border-radius:12px;padding:9px 6px 7px}
+.cd b{font:800 22px/1 var(--fd);color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cd small{font:600 9px/1 var(--fm);letter-spacing:.14em;text-transform:uppercase;color:#AEB6D6}
+.offer .fine.om{margin-top:-4px}
 </style>
 <meta property="og:title" content="Trzecie przeziębienie od września? | Synthagen Journal">
 <meta property="og:description" content="Od października skóra w Polsce praktycznie nie wytwarza witaminy D. Co to znaczy dla odporności, które składniki mają oświadczenia UE i od jakiego badania zacząć.">
@@ -676,6 +683,19 @@ var bar=q('.prog'),sticky=q('.sticky'),hero=q('.hero'),offer=q('#oferta');
 function sc(){var h=d.documentElement,max=h.scrollHeight-h.clientHeight;if(bar)bar.style.transform='scaleX('+(max>0?h.scrollTop/max:0)+')';
   if(sticky&&hero&&offer){var hb=hero.getBoundingClientRect().bottom,ob=offer.getBoundingClientRect();sticky.classList.toggle('on',hb<0&&!(ob.top<innerHeight&&ob.bottom>0))}}
 addEventListener('scroll',sc,{passive:true});addEventListener('resize',sc);
+/* licznik do prawdziwego końca promocji + informacja Omnibus */
+var NM={"gut-balance":"GUT BALANCE™","pure-butyrate-sodium-butyrate":"PURE BUTYRATE™","nova-cellcare-antiaging":"NOVA CELLCARE™","pure-oxilligence-antioxidant":"PURE OXILLIGENCE™","gluco-ageprotect-metabolic":"GLUCO AGEPROTECT™","vital-omega-pro-omega-klasy-premium":"VITAL OMEGA PRO™","nl-bpc-157-heksadekapeptyd":"NL-BPC-157™"};
+var head=q('.offer .head'),cdEl=null;
+if(head&&promo()){cdEl=d.createElement('div');cdEl.className='cd';cdEl.setAttribute('aria-label','Do końca promocji');
+  cdEl.innerHTML=['dni','godz','min','sek'].map(function(l){return '<span><b data-u="'+l+'">00</b><small>'+l+'</small></span>'}).join('');
+  var bmEl=q('.bm',head);(bmEl&&bmEl.nextSibling)?head.insertBefore(cdEl,bmEl.nextSibling):head.appendChild(cdEl);
+  var tick=function(){var t=Math.max(0,Date.parse(C.promoEnd)-Date.now()),s=Math.floor(t/1000),v={dni:Math.floor(s/86400),godz:Math.floor(s%86400/3600),min:Math.floor(s%3600/60),sek:s%60};
+    Object.keys(v).forEach(function(k){var e=q('[data-u="'+k+'"]',cdEl);if(e)e.textContent=(v[k]<10?'0':'')+v[k]});if(t<=0){cdEl.hidden=true}};
+  tick();setInterval(tick,1000)}
+var fine=q('.offer .fine');
+if(fine&&promo()){var om=d.createElement('p');om.className='fine om';
+  om.textContent='Najniższa cena z 30 dni przed obniżką: '+Object.keys(C.products).map(function(k){var pr=C.products[k];return (NM[pr.h]||k)+' '+zl(pr.p)+' za słoik'}).join(', ')+'.';
+  fine.parentNode.insertBefore(om,fine.nextSibling)}
 var def=0;C.opts.forEach(function(o,i){if(o.def)def=i});paint();pick(def);sc();
 })();
 </script>
