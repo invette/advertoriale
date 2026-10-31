@@ -1,0 +1,14 @@
+# Advertoriale Synthagen
+
+Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (static assets). Każdy push na `main` buduje i wdraża Worker `advertoriale` (`npx wrangler deploy`).
+
+| Ścieżka | Temat | Produkt |
+|---|---|---|
+| `/jelita/` | wzdęcia, ciężkość po posiłkach | GUT BALANCE™ (+ PURE BUTYRATE™) |
+| `/stawy/` | sztywne stawy, witamina D zimą | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
+| `/wlosy-skora/` | włosy, paznokcie, skóra | NOVA CELLCARE™ (+ PURE OXILLIGENCE™) |
+| `/cukier/` | zjazd energii po obiedzie | GLUCO AGEPROTECT™ (+ PURE OXILLIGENCE™) |
+
+Przycisk zakupu otwiera koszyk synthagenlabs.com (cart permalink) z wariantami „1 SZT” i atrybutem zamówienia `advertorial=<slug>`. Rabat Black Month (rabaty automatyczne Shopify, 1–30.11.2026) nalicza się w koszyku; progi są w `window.SGA.tiers` każdej strony.
+
+Strony mają GTM `GTM-NLS27RR` i zdarzenie `advertorial_cta` w dataLayer. `/` przekierowuje na synthagenlabs.com.

@@ -1,0 +1,5 @@
+/*
+  X-Robots-Tag: noindex
+  X-Content-Type-Options: nosniff
+/img/*
+  Cache-Control: public, max-age=2592000, immutable
