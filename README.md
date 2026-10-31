@@ -8,6 +8,7 @@ Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (stat
 | `/stawy/` | sztywne stawy, witamina D zimą | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
 | `/wlosy-skora/` | włosy, paznokcie, skóra | NOVA CELLCARE™ (+ PURE OXILLIGENCE™) |
 | `/cukier/` | zjazd energii po obiedzie | GLUCO AGEPROTECT™ (+ PURE OXILLIGENCE™) |
+| `/po-antybiotyku/` | okres po antybiotykoterapii | GUT BALANCE™ (+ PURE BUTYRATE™) |
 | `/regeneracja/` | wolniejsza regeneracja, zmęczenie, longevity | PURE OXILLIGENCE™ (+ NOVA CELLCARE™) |
 
 Przycisk zakupu otwiera koszyk synthagenlabs.com (cart permalink) z wariantami „1 SZT” i atrybutem zamówienia `advertorial=<slug>`. Rabat Black Month (rabaty automatyczne Shopify, 1–30.11.2026) nalicza się w koszyku; progi są w `window.SGA.tiers` każdej strony.
