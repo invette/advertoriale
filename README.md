@@ -9,6 +9,7 @@ Statyczne advertoriale (Synthagen Journal) hostowane na Cloudflare Workers (stat
 | `/odpornosc/` | sezon przeziębień, witamina D zimą | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
 | `/serce-mozg/` | mało ryb w diecie, EPA i DHA | VITAL OMEGA PRO™ (+ PURE OXILLIGENCE™) |
 | `/wlosy-skora/` | włosy, paznokcie, skóra | NOVA CELLCARE™ (+ PURE OXILLIGENCE™) |
+| `/bpc-157/` | BPC-157: co wiadomo z badań, a czego nie | NL-BPC-157™ (progi Black Month dla peptydów) |
 | `/berberyna/` | moda na „naturalny Ozempic” bez mitów | GLUCO AGEPROTECT™ (+ PURE OXILLIGENCE™) |
 | `/przed-po/` | własne zdjęcia przed i po (protokół) | NOVA CELLCARE™ (+ PURE OXILLIGENCE™) |
 | `/cukier/` | zjazd energii po obiedzie | GLUCO AGEPROTECT™ (+ PURE OXILLIGENCE™) |
