@@ -70,7 +70,7 @@ json.dump({'Variables': {'BUCKET': sys.argv[2], 'PANEL_PASSWORD': sys.argv[3], '
 EOF
 
 # 5. Funkcja
-(cd "$DIR" && zip -q -j "$TMP/mailer.zip" app.py panel.html)
+(cd "$DIR" && zip -q -j "$TMP/mailer.zip" app.py panel.html starter.html)
 if aws lambda get-function --function-name $FN --region $REGION >/dev/null 2>&1; then
   aws lambda update-function-code --function-name $FN --zip-file "fileb://$TMP/mailer.zip" --region $REGION >/dev/null
   aws lambda wait function-updated-v2 --function-name $FN --region $REGION

@@ -18,7 +18,9 @@ ses = boto3.client('sesv2', region_name=REGION)
 ses1 = boto3.client('ses', region_name=REGION)
 lam = boto3.client('lambda')
 ddb = boto3.client('dynamodb', region_name=REGION)
-PANEL = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'panel.html'), encoding='utf-8').read()
+HERE = os.path.dirname(os.path.abspath(__file__))
+PANEL = open(os.path.join(HERE, 'panel.html'), encoding='utf-8').read()
+STARTER = open(os.path.join(HERE, 'starter.html'), encoding='utf-8').read()
 EMAIL_RE = re.compile(r'^[^@\s,;<>"]+@[^@\s,;<>"]+\.[A-Za-z]{2,}$')
 FIELDS = ['email', 'first_name', 'segment', 'added']
 
@@ -52,6 +54,62 @@ def jget(key, default=None):
 
 def jput(key, obj):
     s3put(key, json.dumps(obj, ensure_ascii=False))
+
+
+PL = str.maketrans('ąćęłńóśźżĄĆĘŁŃÓŚŹŻ', 'acelnoszzACELNOSZZ')
+
+
+def slug(s, n=40):
+    return re.sub(r'[^a-z0-9]+', '-', (s or '').translate(PL).lower()).strip('-')[:n].strip('-')
+
+
+# ---------- szablony ----------
+TPL_FIELDS = ('name', 'subject', 'preheader', 'from_name', 'from_email', 'reply_to', 'html')
+
+
+def tpl_key(tid):
+    return 'templates/%s.json' % tid
+
+
+def get_template(tid):
+    if not re.match(r'^[\w-]{1,80}$', tid or ''):
+        return None
+    return jget(tpl_key(tid))
+
+
+def list_templates():
+    objs = [o['Key'] for o in s3.list_objects_v2(Bucket=B, Prefix='templates/').get('Contents', [])]
+    keys = [k for k in objs if k.endswith('.json')]
+    if not objs:
+        legacy = jget('template.json')
+        if legacy:
+            legacy.update(id='black-month-start', name=legacy.get('name') or 'Black Month start PL')
+            jput(tpl_key('black-month-start'), legacy)
+            keys = [tpl_key('black-month-start')]
+        s3put('templates/_przeniesiono', iso(), 'text/plain')
+    out = []
+    for k in keys:
+        t = jget(k)
+        if t:
+            out.append({x: t.get(x) for x in ('id', 'name', 'subject', 'preheader', 'from_email', 'updated')})
+    out.sort(key=lambda t: t.get('updated') or '', reverse=True)
+    return out
+
+
+def check_template(data):
+    fe = (data.get('from_email') or '').strip().lower()
+    if fe:
+        if not EMAIL_RE.match(fe):
+            return 'Nieprawidłowy adres nadawcy'
+        ok = verified_identities()
+        if ok and fe not in ok and fe.split('@')[1] not in ok:
+            return 'Adres nadawcy musi być w zweryfikowanej domenie: ' + ', '.join(sorted(x for x in ok if '@' not in x))
+        data['from_email'] = fe
+    if 'html' in data and '{{amazonSESUnsubscribeUrl}}' not in data['html']:
+        return 'W szablonie musi zostać {{amazonSESUnsubscribeUrl}} (link do wypisania).'
+    if 'name' in data and not (data['name'] or '').strip():
+        return 'Podaj nazwę szablonu'
+    return None
 
 
 def parse_contacts(t):
@@ -253,17 +311,18 @@ def html_to_text(h):
     return '\n'.join(out).strip()
 
 
-def render(tpl, name):
+def render(tpl, name, utm='test'):
     pw_h, imie_h = greeting(name, True)
     pw_t, imie_t = greeting(name, False)
     pre = H.escape(tpl.get('preheader', ''))
-    hb = tpl['html'].replace('{{powitanie}}', pw_h).replace('{{imie}}', imie_h).replace('{{preheader}}', pre)
-    tb = html_to_text(tpl['html']).replace('{{powitanie}}', pw_t).replace('{{imie}}', imie_t).replace('{{preheader}}', '')
+    src = tpl['html'].replace('{{kampania}}', utm)
+    hb = src.replace('{{powitanie}}', pw_h).replace('{{imie}}', imie_h).replace('{{preheader}}', pre)
+    tb = html_to_text(src).replace('{{powitanie}}', pw_t).replace('{{imie}}', imie_t).replace('{{preheader}}', '')
     return hb, tb
 
 
-def send_one(tpl, email, name, tag):
-    hb, tb = render(tpl, name)
+def send_one(tpl, email, name, tag, utm='test'):
+    hb, tb = render(tpl, name, utm)
     sender = '%s <%s>' % (tpl.get('from_name', 'Synthagen Labs'), tpl['from_email'])
     kw = dict(FromEmailAddress=sender, Destination={'ToAddresses': [email]},
               Content={'Simple': {'Subject': {'Data': tpl['subject'], 'Charset': 'UTF-8'},
@@ -282,7 +341,7 @@ def health(start):
 
 # ---------- kampanie ----------
 def campaign_summary(c):
-    return {k: c.get(k) for k in ('id', 'name', 'tag', 'status', 'total', 'sent', 'errors', 'created', 'started', 'finished', 'segments', 'note', 'subject', 'rate')}
+    return {k: c.get(k) for k in ('id', 'name', 'tag', 'status', 'total', 'sent', 'errors', 'created', 'started', 'finished', 'segments', 'note', 'subject', 'rate', 'template_id', 'template_name', 'utm')}
 
 
 def list_campaigns(with_stats=False):
@@ -351,7 +410,7 @@ def run_job(cid, context):
         r = rec[i]
         for attempt in range(5):
             try:
-                send_one(tpl, r['email'], r.get('first_name', ''), c['tag'])
+                send_one(tpl, r['email'], r.get('first_name', ''), c['tag'], c.get('utm') or c['tag'])
                 c['sent'] += 1
                 break
             except ClientError as e:
@@ -482,7 +541,7 @@ def api(method, path, data, qs, context):
         except ClientError:
             acc = {}
         uns = unsubscribed()
-        return {'total': len(rows), 'segments': seg, 'template': jget('template.json', {}), 'quota': acc,
+        return {'total': len(rows), 'segments': seg, 'templates': list_templates(), 'quota': acc,
                 'unsubscribed': len(uns), 'unsubscribed_in_list': sum(1 for r in rows if r['email'].lower() in uns),
                 'campaigns': list_campaigns(with_stats=True)[:30]}
     if path == '/api/contacts' and method == 'GET':
@@ -571,29 +630,49 @@ def api(method, path, data, qs, context):
         return {'ok': True, 'added': added, 'skipped': len(new) - added, 'total': len(rows)}
     if path == '/api/contacts/export':
         return {'csv': s3get('contacts.csv', '')}
-    if path == '/api/template' and method == 'POST':
-        fe = (data.get('from_email') or '').strip().lower()
-        if fe:
-            if not EMAIL_RE.match(fe):
-                return {'error': 'Nieprawidłowy adres nadawcy'}
-            ok = verified_identities()
-            if ok and fe not in ok and fe.split('@')[1] not in ok:
-                return {'error': 'Adres nadawcy musi być w zweryfikowanej domenie: ' + ', '.join(sorted(x for x in ok if '@' not in x))}
-            data['from_email'] = fe
-        if 'html' in data and '{{amazonSESUnsubscribeUrl}}' not in data['html']:
-            return {'error': 'W szablonie musi zostać {{amazonSESUnsubscribeUrl}} (link do wypisania).'}
-        tpl = jget('template.json', {})
-        for k in ('subject', 'preheader', 'from_name', 'from_email', 'reply_to', 'html'):
+    if path == '/api/templates' and method == 'GET':
+        return {'templates': list_templates()}
+    if path == '/api/templates/new':
+        name = (data.get('name') or '').strip() or 'Nowy szablon'
+        src = get_template(data.get('copy_from')) if data.get('copy_from') else None
+        base = src or {'subject': '', 'preheader': '', 'html': STARTER}
+        last = next(iter(list_templates()), None)
+        last = get_template(last['id']) if last else {}
+        tid = (slug(name, 30) or 'szablon') + '-' + uuid.uuid4().hex[:4]
+        tpl = {k: base.get(k, '') for k in TPL_FIELDS}
+        for k, d in (('from_name', 'Synthagen Labs'), ('from_email', 'newsletter@synthagen.co'), ('reply_to', 'kontakt@synthagenlabs.com')):
+            tpl[k] = tpl.get(k) or (last or {}).get(k) or d
+        tpl.update(id=tid, name=name, updated=iso())
+        jput(tpl_key(tid), tpl)
+        return {'ok': True, 'template': tpl}
+    m = re.match(r'^/api/templates/([\w-]+)(/delete)?$', path)
+    if m:
+        tid, act = m.group(1), m.group(2)
+        tpl = get_template(tid)
+        if not tpl:
+            return {'error': 'Nie ma takiego szablonu'}
+        if act == '/delete':
+            s3put('template-history/%s/%s-usuniety.json' % (tid, iso().replace(':', '-')), json.dumps(tpl, ensure_ascii=False))
+            s3.delete_object(Bucket=B, Key=tpl_key(tid))
+            return {'ok': True}
+        if method == 'GET':
+            return tpl
+        err = check_template(data)
+        if err:
+            return {'error': err}
+        s3put('template-history/%s/%s.json' % (tid, iso().replace(':', '-')), json.dumps(tpl, ensure_ascii=False))
+        for k in TPL_FIELDS:
             if k in data:
-                tpl[k] = data[k]
+                tpl[k] = data[k].strip() if k == 'name' else data[k]
         tpl['updated'] = iso()
-        prev = s3get('template.json')
-        if prev:
-            s3put('template-history/%s.json' % iso().replace(':', '-'), prev)
-        jput('template.json', tpl)
+        jput(tpl_key(tid), tpl)
         return {'ok': True, 'template': tpl}
     if path == '/api/test':
-        tpl = jget('template.json', {})
+        tpl = get_template(data.get('template_id'))
+        if not tpl:
+            return {'error': 'Wybierz szablon'}
+        if not (tpl.get('subject') or '').strip():
+            return {'error': 'Szablon „%s” nie ma tematu. Uzupełnij go w zakładce Szablony.' % tpl.get('name')}
         to = (data.get('to') or '').strip()
         if not EMAIL_RE.match(to):
             return {'error': 'Podaj poprawny adres testowy'}
@@ -613,7 +692,11 @@ def api(method, path, data, qs, context):
                     jput('campaigns/%s.json' % c['id'], full)
                     continue
                 return {'error': 'Trwa już wysyłka „%s”. Poczekaj albo ją zatrzymaj.' % c['name']}
-        tpl = jget('template.json', {})
+        tpl = get_template(data.get('template_id'))
+        if not tpl:
+            return {'error': 'Wybierz szablon'}
+        if not (tpl.get('subject') or '').strip():
+            return {'error': 'Szablon „%s” nie ma tematu. Uzupełnij go w zakładce Szablony.' % tpl.get('name')}
         if '{{amazonSESUnsubscribeUrl}}' not in tpl.get('html', ''):
             return {'error': 'W szablonie brakuje linku do wypisania się ({{amazonSESUnsubscribeUrl}}).'}
         segs = data.get('segments') or []
@@ -635,9 +718,10 @@ def api(method, path, data, qs, context):
         w.writeheader()
         w.writerows(rows)
         s3put('campaigns/%s.csv' % cid, out.getvalue(), 'text/csv')
-        name = (data.get('name') or tpl.get('subject') or 'Kampania').strip()[:120]
+        name = (data.get('name') or tpl.get('name') or tpl.get('subject') or 'Kampania').strip()[:120]
         c = {'id': cid, 'name': name, 'tag': 'c-' + cid, 'status': 'queued', 'total': len(rows), 'sent': 0, 'errors': 0,
-             'cursor': 0, 'created': iso(), 'segments': segs, 'rate': int(data.get('rate') or 7), 'template': tpl, 'subject': tpl.get('subject')}
+             'cursor': 0, 'created': iso(), 'segments': segs, 'rate': int(data.get('rate') or 7), 'template': tpl, 'subject': tpl.get('subject'),
+             'template_id': tpl.get('id'), 'template_name': tpl.get('name'), 'utm': slug(name) or ('c-' + cid)}
         jput('campaigns/%s.json' % cid, c)
         lam.invoke(FunctionName=context.function_name, InvocationType='Event', Payload=json.dumps({'job': cid}).encode())
         return {'ok': True, 'campaign': campaign_summary(c)}
