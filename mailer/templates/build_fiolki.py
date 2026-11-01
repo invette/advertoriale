@@ -135,11 +135,10 @@ H.append(f'''<!doctype html>
 ''')
 # pasek + logo
 H.append(f'<tr><td align="center" style="padding:10px 16px;border-bottom:1px solid {LINE};{MONO}font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#9AA0BE;">Black Month <span style="color:{ACC};">◆</span> Kod VIAL −10% <span style="color:{ACC};">◆</span> Darmowa wysyłka <span style="color:{ACC};">◆</span> Do 30.11</td></tr>\n')
-H.append(f'<tr><td align="center" style="padding:28px 32px 6px;"><a href="{page("/", "logo")}" style="text-decoration:none;color:{TXT};{BLACK}font-size:20px;letter-spacing:1px;">SYNTHAGEN<br><span style="font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:10px;letter-spacing:4px;color:{ACC2};">LABORATORIES</span></a></td></tr>\n')
 # hero
 H.append(row(kicker('Dla tych, którzy znają peptydy z fiolek')
              + f'<h1 class="h1" style="margin:12px 0 0;{BLACK}font-size:46px;line-height:1.02;color:#FFFFFF;">Peptyd bez<br><span style="color:{ACC};">strzykawki.</span></h1>'
-             + p('{{powitanie}} jeśli peptydy znasz z fiolek, proszku i insulinówki, mamy dla Ciebie prostszą drogę. <b style="color:#FFFFFF;">NL-BPC-157™</b> to analog BPC-157 zamknięty w kapsułce. Bez rozpuszczania, bez odmierzania, bez wkłucia. Jedna kapsułka rano.', 16, top=18), '24px 32px 0'))
+             + p('{{powitanie}} jeśli peptydy znasz z fiolek, proszku i insulinówki, mamy dla Ciebie prostszą drogę. <b style="color:#FFFFFF;">NL-BPC-157™</b> to analog BPC-157 zamknięty w kapsułce. Bez rozpuszczania, bez odmierzania, bez wkłucia. Jedna kapsułka rano.', 16, top=18), '32px 32px 0'))
 # karta ceny
 H.append(row(f'''<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{HI};border:1px solid {HIL};border-radius:18px;"><tr>
 <td class="stk" width="44%" align="center" valign="middle" style="padding:18px 6px 18px 18px;"><a href="{vial('/products/nl-bpc-157-heksadekapeptyd', 'hero-img')}" target="_blank"><img src="{BPC_IMG}" width="210" alt="NL-BPC-157™" style="display:block;width:100%;max-width:210px;height:auto;border:0;border-radius:14px;"></a></td>
@@ -234,16 +233,6 @@ H.append(row(f'''<table role="presentation" width="100%" cellpadding="0" cellspa
 </td></tr></table>''', '14px 32px 0'))
 H.append(row(button(vial('/pages/black-month', 'cta-biohacking'), 'Otwórz konfigurator z kodem VIAL →'), '20px 32px 0'))
 
-# ludzie
-H.append(divider())
-H.append(row(kicker('Kto za tym stoi') + h2('Ludzie za formułą.')
-             + p('Chemicy i technolodzy, z którymi konsultujemy składy, dawki i to, jak opisujemy produkty.', 15), '26px 32px 0'))
-H.append(row('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
-             + person(IMG + '/ziewiecki.jpg', 'dr Rafał Ziewiecki', 'Doktor nauk chemicznych', 'Chemia i analiza składników. Ocenia właściwości składników i ich wzajemne oddziaływania.')
-             + person(IMG + '/kowalski.jpg', 'mgr Andrzej Kowalski', 'Składniki i jakość formulacji', 'Ocenia dobór składników pod kątem jakości, stabilności i procesu produkcji.')
-             + '</tr></table>', '16px 26px 0'))
-H.append(row(p('Masz pytanie o przejście z fiolek na kapsułki? <b style="color:#FFFFFF;">Odpisz na tego maila.</b> Odpowiada człowiek z naszego zespołu, nie bot.', 15, top=0), '18px 32px 0'))
-
 # koniec + licznik
 H.append(divider())
 H.append(f'<tr><td align="center" style="padding:24px 32px 4px;"><a href="{vial("/pages/black-month", "timer")}" target="_blank"><img src="https://gen.sendtric.com/countdown/z9nk41lj4b" width="536" alt="Do końca Black Month" style="display:block;width:100%;max-width:536px;height:auto;border:0;"></a></td></tr>\n')
@@ -259,7 +248,7 @@ H.append(f'''<tr><td style="padding:22px 32px 0;"><table role="presentation" wid
 H.append(f'''<tr><td style="padding:24px 32px 32px;font-size:11px;line-height:1.6;color:#6E7598;text-align:center;">
 NL-BPC-157™ jest suplementem diety. Suplement diety nie zastępuje zróżnicowanej diety. Nie przekraczaj porcji: 1 kapsułka dziennie. Jeśli przyjmujesz leki, chorujesz przewlekle, jesteś w ciąży albo karmisz piersią, skonsultuj stosowanie z lekarzem. BPC-157 jest na liście substancji zabronionych WADA (kategoria S0): jeśli podlegasz kontroli antydopingowej, nie stosuj produktu.<br><br>
 Black Month trwa od 1.11.2026 do 30.11.2026, 23:59. Rabat zależy od liczby słoików z jednej linii w jednym zamówieniu (peptydy NL i Nutraceuticals liczą się osobno) i nalicza się automatycznie w koszyku. Kod VIAL daje dodatkowe 10% na całe zamówienie, łączy się z rabatem Black Month i jest ważny do 30.11.2026, 23:59. Najniższa cena z 30 dni przed obniżką: 239 zł za słoik peptydu NL, 209 zł za słoik GUT BALANCE™ i PURE BUTYRATE™.<br><br>
-Otrzymujesz tę wiadomość, bo jesteś klientem Synthagen i wyraziłeś zgodę na otrzymywanie informacji handlowych. Masz pytanie? Odpisz na tego maila albo napisz na kontakt@synthagenlabs.com.<br><br>
+Otrzymujesz tę wiadomość, bo jesteś klientem Synthagen i wyraziłeś zgodę na otrzymywanie informacji handlowych. Masz pytanie? Odpisz na tego maila albo napisz na info@synthagen.co.<br><br>
 Sprzedawca: AXIOM ONE sp. z o.o., os. Na Lotnisku 1/U23, 31-801 Kraków, KRS 0000860410<br><br>
 <a href="{{{{amazonSESUnsubscribeUrl}}}}" style="color:{ACC2};">Wypisz się z listy</a>
 </td></tr>
@@ -272,7 +261,7 @@ assert html.count('{{amazonSESUnsubscribeUrl}}') == 1 and '{{powitanie}}' in htm
 tpl = {'name': 'Fiolki → NL-BPC-157 (kod VIAL)',
        'subject': 'Peptyd bez strzykawki. NL-BPC-157™ od 107,55 zł z kodem VIAL',
        'preheader': 'Znasz peptydy z fiolek? Kapsułka zamiast igły, a z kodem VIAL dodatkowe −10% do rabatu Black Month.',
-       'from_name': 'Synthagen Labs', 'from_email': 'newsletter@synthagen.co', 'reply_to': 'kontakt@synthagenlabs.com', 'html': html}
+       'from_name': 'Synthagen Labs', 'from_email': 'newsletter@synthagen.co', 'reply_to': 'info@synthagen.co', 'html': html}
 (D / 'fiolki-nl.html').write_text(html, encoding='utf-8')
 (D / 'fiolki-nl.json').write_text(json.dumps(tpl, ensure_ascii=False), encoding='utf-8')
 print('ok', len(html))
