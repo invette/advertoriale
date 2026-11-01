@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Synthagen Mailer</title>
+<style>
+:root{--bg:#F4F5FA;--card:#fff;--ink:#0A0F1F;--mut:#5B6280;--line:#E3E6F0;--acc:#1F3BFF;--acc2:#E9EDFF;--ok:#0E9F6E;--bad:#E02D3C;--warn:#C27803}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:18px;padding:14px 22px;background:#0A0F1F;color:#fff;position:sticky;top:0;z-index:5}
+header b{font-weight:800;letter-spacing:.02em}header small{color:#9AA3C7}
+nav{display:flex;gap:4px;margin-left:12px}nav button{background:none;border:0;color:#C9D1F2;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+nav button.on{background:#1F2A66;color:#fff}header .sp{flex:1}header .lo{background:none;border:1px solid #3A4270;color:#C9D1F2;border-radius:8px;padding:6px 10px;cursor:pointer}
+main{max-width:1180px;margin:0 auto;padding:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 12px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.big{font-size:30px;font-weight:800}.mut{color:var(--mut)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn.sec{background:var(--acc2);color:var(--acc)}.btn.red{background:var(--bad)}.btn.xl{font-size:16px;padding:14px 22px;width:100%}
+input[type=text],input[type=email],input[type=password],select,textarea{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;width:100%}
+textarea{font:12px/1.5 ui-monospace,Menlo,monospace}label{display:block;font-weight:600;font-size:12px;color:var(--mut);margin:10px 0 4px}
+.segs label{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500;font-size:14px;margin:6px 0}.segs b{margin-left:auto}
+.bar{height:12px;background:var(--acc2);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);width:0;transition:width .5s}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}th{color:var(--mut);font-weight:600;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--acc2);color:var(--acc);font-size:12px;font-weight:600}
+.tag.ok{background:#E3F8EF;color:var(--ok)}.tag.bad{background:#FDE7EA;color:var(--bad)}.tag.warn{background:#FFF4DE;color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}.stats div{background:var(--bg);border-radius:10px;padding:10px}.stats b{display:block;font-size:20px}.stats span{font-size:12px;color:var(--mut)}
+.ed{display:grid;grid-template-columns:1fr 1fr;gap:16px}.ed textarea{height:560px}.pv{background:#e9ebf3;border-radius:12px;padding:12px;display:flex;justify-content:center}.pv iframe{border:0;background:#fff;width:640px;max-width:100%;height:560px;border-radius:8px}
+.pv.mob iframe{width:390px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0A0F1F;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:20;max-width:90vw}
+#toast.bad{background:var(--bad)}
+.modal{position:fixed;inset:0;background:rgba(10,15,31,.55);display:none;align-items:center;justify-content:center;z-index:15}.modal .card{max-width:440px;width:92vw}
+#login{max-width:380px;margin:12vh auto}
+.pg{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px}
+.hide{display:none!important}.dirty{color:var(--warn);font-weight:700}
+@media(max-width:860px){.ed{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}nav{overflow:auto}header{flex-wrap:wrap}}
+</style></head>
+<body>
+<header><b>SYNTHAGEN</b><small>Mailer</small>
+<nav id="nav" class="hide"><button data-t="send" class="on">Wysyłka</button><button data-t="contacts">Odbiorcy</button><button data-t="tpl">Szablon</button><button data-t="hist">Historia</button></nav>
+<span class="sp"></span><button class="lo hide" id="logout">Wyloguj</button></header>
+<main>
+<div id="login" class="card"><h3>Logowanie</h3><label>Hasło do panelu</label><input type="password" id="pw" autocomplete="current-password"><div style="height:12px"></div><button class="btn xl" id="loginBtn">Zaloguj</button><p class="mut" id="loginErr"></p></div>
+
+<section id="t-send" class="hide">
+ <div class="grid">
+  <div class="card"><h3>Lista odbiorców</h3><div class="big" id="sTotal">–</div><div class="mut">adresów na liście · <span id="sUnsub">0</span> wypisanych</div>
+   <label>Do kogo wysłać</label><div class="segs" id="segs"></div>
+   <label style="display:flex;gap:8px;align-items:center;color:var(--ink);font-weight:500"><input type="checkbox" id="exSent"> Pomiń osoby, które dostały już poprzednią kampanię</label>
+  </div>
+  <div class="card"><h3>Mail testowy</h3><p class="mut">Wyślij najpierw do siebie i sprawdź, jak wygląda w skrzynce.</p><label>Adres testowy</label><input type="email" id="testTo"><div style="height:10px"></div><button class="btn sec" id="testBtn">Wyślij test</button>
+   <h3 style="margin-top:22px">Limit Amazon SES</h3><div class="mut" id="quota">–</div></div>
+  <div class="card"><h3>Wysyłka</h3><label>Nazwa kampanii (dla Ciebie)</label><input type="text" id="cName" placeholder="np. Black Month start PL">
+   <label>Tempo</label><select id="rate"><option value="5">5 maili / s (najbezpieczniej)</option><option value="7" selected>7 maili / s</option><option value="10">10 maili / s</option></select>
+   <div style="height:14px"></div><button class="btn xl" id="sendBtn">Wyślij</button><p class="mut" id="sendInfo"></p></div>
+ </div>
+ <div class="card" id="runCard" style="margin-top:16px"><h3>Ostatnia kampania</h3><div id="run">Jeszcze nic nie wysłano.</div></div>
+</section>
+
+<section id="t-contacts" class="hide">
+ <div class="grid">
+  <div class="card"><h3>Dodaj adres</h3><label>E-mail</label><input type="email" id="aEmail"><label>Imię</label><input type="text" id="aName"><label>Grupa</label><input type="text" id="aSeg" placeholder="np. ręcznie"><div style="height:10px"></div><button class="btn sec" id="addBtn">Dodaj</button></div>
+  <div class="card"><h3>Import z pliku lub wklejenie</h3><input type="file" id="impFile" accept=".csv,.txt"><label>…albo wklej adresy (jeden w wierszu, opcjonalnie: e-mail;imię)</label><textarea id="impText" style="height:90px"></textarea>
+   <label>Nazwa grupy dla importu (opcjonalnie)</label><input type="text" id="impSeg"><div class="row" style="margin-top:10px"><label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="radio" name="impMode" value="append" checked> dopisz</label><label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="radio" name="impMode" value="replace"> zastąp całą listę</label><span class="sp" style="flex:1"></span><button class="btn sec" id="impBtn">Importuj</button></div></div>
+ </div>
+ <div class="card" style="margin-top:16px"><div class="row"><input type="text" id="q" placeholder="Szukaj po adresie lub imieniu" style="flex:1;min-width:220px"><select id="qSeg" style="width:auto"></select><button class="btn red" id="delBtn" disabled>Usuń zaznaczone</button><button class="btn sec" id="expBtn">Pobierz CSV</button></div>
+  <div style="overflow:auto;margin-top:10px"><table><thead><tr><th><input type="checkbox" id="all"></th><th>E-mail</th><th>Imię</th><th>Grupa</th><th>Dodany</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="pg"><span class="mut" id="pgInfo"></span><button class="btn sec" id="prev">←</button><button class="btn sec" id="next">→</button></div></div>
+</section>
+
+<section id="t-tpl" class="hide">
+ <div class="card"><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 16px">
+  <div><label>Temat</label><input type="text" id="tSubject"></div><div><label>Preheader (zajawka widoczna obok tematu w skrzynce)</label><input type="text" id="tPre"></div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 16px">
+  <div><label>Nazwa nadawcy</label><input type="text" id="tFromName"></div><div><label>Adres nadawcy (musi być @synthagen.co)</label><input type="email" id="tFrom"></div><div><label>Odpowiedzi trafiają na</label><input type="email" id="tReply"></div></div>
+  <div class="row" style="margin:14px 0"><button class="btn" id="saveTpl">Zapisz szablon</button><button class="btn sec" id="revTpl">Cofnij zmiany</button><span id="dirty"></span><span style="flex:1"></span>
+   <label style="margin:0;display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="checkbox" id="wys"> Edytuj teksty w podglądzie</label><button class="btn sec" id="devBtn">Telefon</button></div>
+  <p class="mut" style="margin:0 0 12px">Wstawki: <code>{{powitanie}}</code> → „Cześć Anna,” · <code>{{imie}}</code> → „Anna” · <code>{{amazonSESUnsubscribeUrl}}</code> → link do wypisania (musi zostać w stopce).</p>
+  <div class="ed"><textarea id="tHtml" spellcheck="false"></textarea><div class="pv" id="pv"><iframe id="frame" title="Podgląd"></iframe></div></div></div>
+</section>
+
+<section id="t-hist" class="hide"><div class="card"><h3>Kampanie</h3><div style="overflow:auto"><table><thead><tr><th>Data</th><th>Nazwa</th><th>Status</th><th>Wysłane</th><th>Błędy</th><th></th></tr></thead><tbody id="hist"></tbody></table></div><div id="histStats"></div></div></section>
+</main>
+<div class="modal" id="modal"><div class="card"><h3 id="mTitle">Potwierdź</h3><p id="mText"></p><div class="row"><button class="btn" id="mYes">Tak</button><button class="btn sec" id="mNo">Anuluj</button></div></div></div>
+<div id="toast"></div>
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)},$$=function(s){return [].slice.call(document.querySelectorAll(s))};
+var IN=false,KEY='',ST=null,TPL=null,page=1,poll=null,lastRun=null;
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+function toast(t,bad){var e=$('#toast');e.textContent=t;e.className=bad?'bad':'';e.style.display='block';clearTimeout(e._t);e._t=setTimeout(function(){e.style.display='none'},bad?6000:3000)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function api(path,body,method){return fetch(path,{method:method||(body?'POST':'GET'),headers:{'x-key':KEY,'content-type':'application/json'},body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().then(function(j){if(r.status===401){if(IN)logout();throw new Error('Złe hasło')}if(j.error)throw new Error(j.error);return j})})}
+function confirmBox(title,text,yes){$('#mTitle').textContent=title;$('#mText').innerHTML=text;$('#modal').style.display='flex';$('#mYes').onclick=function(){$('#modal').style.display='none';yes()};$('#mNo').onclick=function(){$('#modal').style.display='none'}}
+function fmt(d){if(!d)return'–';var x=new Date(d);return x.toLocaleDateString('pl-PL')+' '+x.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}
+var SL={queued:['w kolejce',''],running:['wysyła',''],stopping:['zatrzymuje…','warn'],stopped:['zatrzymana','warn'],done:['wysłana','ok'],failed:['błąd','bad']};
+function stag(s){var x=SL[s]||[s,''];return '<span class="tag '+x[1]+'">'+x[0]+'</span>'}
+
+function login(){KEY=$('#pw').value.trim()||ls('mk')||'';if(!KEY)return;api('/api/state').then(function(s){IN=true;ls('mk',KEY);$('#login').classList.add('hide');$('#nav').classList.remove('hide');$('#logout').classList.remove('hide');show('send');applyState(s)}).catch(function(e){$('#loginErr').textContent=e.message;ls('mk',null)})}
+function logout(){ls('mk',null);KEY='';location.reload()}
+function show(t){$$('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});$$('main>section').forEach(function(s){s.classList.toggle('hide',s.id!=='t-'+t)});if(t==='contacts')loadContacts();if(t==='hist')loadHist();if(t==='tpl')fillTpl()}
+
+function applyState(s){ST=s;TPL=s.template||{};$('#sTotal').textContent=s.total.toLocaleString('pl-PL');$('#sUnsub').textContent=s.unsubscribed;
+ var keys=Object.keys(s.segments).sort(function(a,b){return s.segments[b]-s.segments[a]});
+ var off=[];try{off=JSON.parse(ls('segoff')||'[]')}catch(e){}
+ $('#segs').innerHTML=keys.map(function(k){var on=off.indexOf(k)<0;return '<label><input type="checkbox" value="'+esc(k)+'"'+(on?' checked':'')+'> '+esc(k)+' <b>'+s.segments[k].toLocaleString('pl-PL')+'</b></label>'}).join('');
+ $$('#segs input').forEach(function(i){i.onchange=countSel});countSel();
+ var q=s.quota||{};$('#quota').textContent=q.Max24HourSend?('Wysłane w ostatnich 24 h: '+Math.round(q.SentLast24Hours)+' z '+Math.round(q.Max24HourSend)+' · max '+q.MaxSendRate+' / s'):'–';
+ $('#qSeg').innerHTML='<option value="">Wszystkie grupy</option>'+keys.map(function(k){return '<option>'+esc(k)+'</option>'}).join('');
+ var run=(s.campaigns||[])[0];lastRun=run||null;renderRun(run);
+ if(run&&['queued','running','stopping'].indexOf(run.status)>-1)startPoll(run.id)}
+function selSegs(){return $$('#segs input').filter(function(i){return i.checked}).map(function(i){return i.value})}
+function countSel(){var segs=selSegs();ls('segoff',JSON.stringify($$('#segs input').filter(function(i){return !i.checked}).map(function(i){return i.value})));var n=segs.reduce(function(a,k){return a+(ST.segments[k]||0)},0);
+ $('#sendBtn').textContent='Wyślij do '+n.toLocaleString('pl-PL')+' osób';$('#sendBtn').disabled=!n;$('#sendInfo').textContent='Temat: „'+(TPL.subject||'')+'”. Wypisani są pomijani automatycznie.'}
+
+function renderRun(c,st){if(!c){$('#run').textContent='Jeszcze nic nie wysłano.';return}
+ var pct=c.total?Math.round(100*c.sent/c.total):0,active=['queued','running','stopping'].indexOf(c.status)>-1;
+ var h='<div class="row"><b>'+esc(c.name)+'</b>'+stag(c.status)+'<span class="mut">'+fmt(c.started||c.created)+'</span><span style="flex:1"></span>'+(active?'<button class="btn red" id="stopBtn">Zatrzymaj</button>':'<button class="btn sec" id="statBtn">Odśwież wyniki</button>')+'</div>'+
+  '<div style="margin:12px 0 6px" class="row"><span class="big" style="font-size:22px">'+c.sent.toLocaleString('pl-PL')+' / '+c.total.toLocaleString('pl-PL')+'</span><span class="mut">wysłanych · błędy: '+c.errors+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div>'+(c.note?'<p class="mut">'+esc(c.note)+'</p>':'');
+ if(st)h+=statsHtml(st);
+ $('#run').innerHTML=h;
+ if($('#stopBtn'))$('#stopBtn').onclick=function(){confirmBox('Zatrzymać wysyłkę?','Maile już wysłane zostaną wysłane, reszta nie. Możesz potem wysłać do pozostałych, zaznaczając „Pomiń osoby, które dostały już poprzednią kampanię”.',function(){api('/api/campaigns/'+c.id+'/stop',{}).then(function(){toast('Zatrzymuję…')})})};
+ if($('#statBtn'))$('#statBtn').onclick=function(){api('/api/campaigns/'+c.id+'/stats').then(function(x){renderRun(x,x.stats)})}}
+function statsHtml(s){if(!s)return'';var d=s.Delivery||0,p=function(a){return d?' ('+(100*a/d).toFixed(1).replace('.',',')+'%)':''};
+ return '<div class="stats"><div><b>'+(s.Delivery||0)+'</b><span>doręczone</span></div><div><b>'+(s.Open||0)+p(s.Open||0)+'</b><span>otwarcia</span></div><div><b>'+(s.Click||0)+p(s.Click||0)+'</b><span>kliknięcia</span></div><div><b>'+(s.Bounce||0)+p(s.Bounce||0)+'</b><span>odbicia</span></div><div><b>'+(s.Complaint||0)+'</b><span>zgłoszenia spamu</span></div><div><b>'+(s.Subscription||0)+'</b><span>wypisy</span></div><div><b>'+(s.Reject||0)+'</b><span>odrzucone</span></div><div><b>'+(s.Send||0)+'</b><span>przekazane do SES</span></div></div><p class="mut">Wyniki z Amazon SES spływają z opóźnieniem kilku minut. Sprzedaż z tego maila zobaczysz w Shopify (źródło: ses).</p>'}
+function startPoll(id){clearInterval(poll);poll=setInterval(function(){api('/api/campaigns/'+id).then(function(c){renderRun(c);if(['queued','running','stopping'].indexOf(c.status)<0){clearInterval(poll);toast(c.status==='done'?'Wysyłka zakończona: '+c.sent+' maili':'Wysyłka: '+(SL[c.status]||[c.status])[0]);api('/api/state').then(applyState)}}).catch(function(){})},3000)}
+
+$('#sendBtn').onclick=function(){var segs=selSegs(),n=segs.reduce(function(a,k){return a+(ST.segments[k]||0)},0);
+ confirmBox('Wysłać mailing?','Temat: <b>„'+esc(TPL.subject)+'”</b><br>Odbiorcy: <b>'+n.toLocaleString('pl-PL')+'</b> ('+segs.map(esc).join(', ')+')'+($('#exSent').checked?'<br>bez osób z poprzednich kampanii':'')+'<br><br>Wysyłki nie da się cofnąć, ale możesz ją zatrzymać w trakcie.',function(){
+  $('#sendBtn').disabled=true;api('/api/campaigns/start',{segments:segs,name:$('#cName').value,rate:+$('#rate').value,exclude_sent:$('#exSent').checked}).then(function(r){toast('Wysyłka ruszyła: '+r.campaign.total+' odbiorców');renderRun(r.campaign);startPoll(r.campaign.id)}).catch(function(e){toast(e.message,1)}).then(function(){$('#sendBtn').disabled=false})})};
+$('#testBtn').onclick=function(){var to=$('#testTo').value.trim();ls('testTo',to);$('#testBtn').disabled=true;api('/api/test',{to:to}).then(function(){toast('Test wysłany na '+to)}).catch(function(e){toast(e.message,1)}).then(function(){$('#testBtn').disabled=false})};
+
+/* odbiorcy */
+function loadContacts(){var q=encodeURIComponent($('#q').value.trim()),sg=encodeURIComponent($('#qSeg').value);api('/api/contacts?q='+q+'&seg='+sg+'&page='+page+'&size=100').then(function(r){
+ $('#rows').innerHTML=r.rows.map(function(x){return '<tr><td><input type="checkbox" class="ck" value="'+esc(x.email)+'"></td><td>'+esc(x.email)+(x.unsub?' <span class="tag bad">wypisany</span>':'')+'</td><td>'+esc(x.first_name)+'</td><td><span class="tag">'+esc(x.segment||'(brak)')+'</span></td><td class="mut">'+esc(x.added)+'</td><td><button class="btn sec ed1" data-e="'+esc(x.email)+'" data-n="'+esc(x.first_name)+'" data-s="'+esc(x.segment)+'" style="padding:5px 10px">Edytuj</button></td></tr>'}).join('')||'<tr><td colspan="6" class="mut">Brak wyników</td></tr>';
+ var pages=Math.max(1,Math.ceil(r.total/r.size));$('#pgInfo').textContent=r.total.toLocaleString('pl-PL')+' adresów · strona '+r.page+' z '+pages;$('#prev').disabled=page<=1;$('#next').disabled=page>=pages;$('#all').checked=false;selChange();
+ $$('.ck').forEach(function(c){c.onchange=selChange});
+ $$('.ed1').forEach(function(b){b.onclick=function(){var tr=b.closest('tr'),td=tr.children;
+  td[2].innerHTML='<input type="text" class="inN" value="'+esc(b.dataset.n)+'">';td[3].innerHTML='<input type="text" class="inS" value="'+esc(b.dataset.s)+'">';
+  td[5].innerHTML='<button class="btn sv" style="padding:5px 10px">Zapisz</button>';td[2].firstChild.focus();
+  var save=function(){api('/api/contacts/update',{email:b.dataset.e,first_name:tr.querySelector('.inN').value,segment:tr.querySelector('.inS').value}).then(function(){toast('Zapisano');loadContacts();api('/api/state').then(applyState)}).catch(function(e){toast(e.message,1)})};
+  td[5].firstChild.onclick=save;[].forEach.call(tr.querySelectorAll('input[type=text]'),function(i){i.onkeydown=function(e){if(e.key==='Enter')save();if(e.key==='Escape')loadContacts()}})}})}).catch(function(e){toast(e.message,1)})}
+function selChange(){var n=$$('.ck').filter(function(c){return c.checked}).length;$('#delBtn').disabled=!n;$('#delBtn').textContent=n?'Usuń zaznaczone ('+n+')':'Usuń zaznaczone'}
+$('#all').onchange=function(){$$('.ck').forEach(function(c){c.checked=$('#all').checked});selChange()};
+var qt;$('#q').oninput=function(){clearTimeout(qt);qt=setTimeout(function(){page=1;loadContacts()},350)};$('#qSeg').onchange=function(){page=1;loadContacts()};
+$('#prev').onclick=function(){page--;loadContacts()};$('#next').onclick=function(){page++;loadContacts()};
+$('#delBtn').onclick=function(){var em=$$('.ck').filter(function(c){return c.checked}).map(function(c){return c.value});confirmBox('Usunąć '+em.length+' adresów?','Zostaną usunięte z listy wysyłkowej.',function(){api('/api/contacts/delete',{emails:em}).then(function(){toast('Usunięto '+em.length);loadContacts();api('/api/state').then(applyState)}).catch(function(e){toast(e.message,1)})})};
+$('#addBtn').onclick=function(){api('/api/contacts/add',{email:$('#aEmail').value,first_name:$('#aName').value,segment:$('#aSeg').value}).then(function(){toast('Dodano');$('#aEmail').value='';$('#aName').value='';loadContacts();api('/api/state').then(applyState)}).catch(function(e){toast(e.message,1)})};
+$('#impFile').onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$('#impText').value=r.result};r.readAsText(f,'utf-8')};
+$('#impBtn').onclick=function(){var mode=$$('input[name=impMode]').filter(function(i){return i.checked})[0].value,txt=$('#impText').value;if(!txt.trim())return toast('Wklej adresy albo wybierz plik',1);
+ var go=function(){api('/api/contacts/import',{csv:txt,mode:mode,segment:$('#impSeg').value}).then(function(r){toast('Dodano '+r.added+', pominięto '+r.skipped+' (duplikaty/błędne). Na liście: '+r.total);$('#impText').value='';loadContacts();api('/api/state').then(applyState)}).catch(function(e){toast(e.message,1)})};
+ mode==='replace'?confirmBox('Zastąpić całą listę?','Obecna lista zostanie usunięta i zastąpiona importem.',go):go()};
+$('#expBtn').onclick=function(){api('/api/contacts/export').then(function(r){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+r.csv],{type:'text/csv'}));a.download='odbiorcy.csv';a.click()})};
+
+/* szablon */
+var orig=null,dirty=false;
+function fillTpl(){if(dirty)return;orig=JSON.parse(JSON.stringify(TPL||{}));$('#tSubject').value=TPL.subject||'';$('#tPre').value=TPL.preheader||'';$('#tFromName').value=TPL.from_name||'';$('#tFrom').value=TPL.from_email||'';$('#tReply').value=TPL.reply_to||'';$('#tHtml').value=TPL.html||'';setDirty(false);preview()}
+function setDirty(d){dirty=d;$('#dirty').innerHTML=d?'<span class="dirty">● niezapisane zmiany</span>':''}
+function pvHtml(h){var ph=function(n,t){return '<span data-ph="'+n+'" contenteditable="false" style="background:rgba(77,107,255,.28);border-radius:4px">'+t+'</span>'};
+ return h.replace(/\{\{powitanie\}\}/g,ph('powitanie','Cześć Anna,')).replace(/\{\{imie\}\}/g,ph('imie','Anna')).replace(/\{\{preheader\}\}/g,ph('preheader',esc($('#tPre').value)))}
+var syncing=false;
+function preview(){var f=$('#frame'),d=f.contentDocument;d.open();d.write(pvHtml($('#tHtml').value));d.close();
+ d.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(a)e.preventDefault()},true);
+ if($('#wys').checked){d.designMode='on';d.addEventListener('input',function(){syncing=true;var h=d.documentElement.outerHTML.replace(/<span data-ph="(\w+)"[^>]*>[\s\S]*?<\/span>/g,'{{$1}}');$('#tHtml').value='<!doctype html>\n'+h;setDirty(true);syncing=false})}}
+var pt;$('#tHtml').oninput=function(){setDirty(true);clearTimeout(pt);pt=setTimeout(preview,400)};
+['#tSubject','#tPre','#tFromName','#tFrom','#tReply'].forEach(function(s){$(s).oninput=function(){setDirty(true);if(s==='#tPre'){clearTimeout(pt);pt=setTimeout(preview,400)}}});
+$('#wys').onchange=preview;$('#devBtn').onclick=function(){var m=$('#pv').classList.toggle('mob');$('#devBtn').textContent=m?'Komputer':'Telefon'};
+$('#revTpl').onclick=function(){setDirty(false);fillTpl()};
+$('#saveTpl').onclick=function(){var h=$('#tHtml').value;if(h.indexOf('{{amazonSESUnsubscribeUrl}}')<0)return toast('W szablonie musi zostać {{amazonSESUnsubscribeUrl}} (link do wypisania).',1);
+ api('/api/template',{subject:$('#tSubject').value,preheader:$('#tPre').value,from_name:$('#tFromName').value,from_email:$('#tFrom').value,reply_to:$('#tReply').value,html:h}).then(function(r){TPL=r.template;ST.template=TPL;setDirty(false);countSel();toast('Szablon zapisany')}).catch(function(e){toast(e.message,1)})};
+window.addEventListener('beforeunload',function(e){if(dirty){e.preventDefault();e.returnValue=''}});
+
+/* historia */
+function loadHist(){api('/api/state').then(function(s){applyState(s);$('#hist').innerHTML=(s.campaigns||[]).map(function(c){return '<tr><td>'+fmt(c.started||c.created)+'</td><td>'+esc(c.name)+'</td><td>'+stag(c.status)+'</td><td>'+c.sent+' / '+c.total+'</td><td>'+c.errors+'</td><td><button class="btn sec hs" data-id="'+c.id+'" style="padding:5px 10px">Wyniki</button></td></tr>'}).join('')||'<tr><td colspan="6" class="mut">Brak kampanii</td></tr>';
+ $$('.hs').forEach(function(b){b.onclick=function(){$('#histStats').innerHTML='<p class="mut">Ładuję…</p>';api('/api/campaigns/'+b.dataset.id+'/stats').then(function(x){$('#histStats').innerHTML='<h3 style="margin-top:18px">'+esc(x.name)+'</h3>'+statsHtml(x.stats)+(x.error_list&&x.error_list.length?'<p class="mut">Ostatnie błędy: '+x.error_list.map(function(e){return esc(e[0])+' ('+esc(e[1])+')'}).join(', ')+'</p>':'')})}})})}
+
+$$('#nav button').forEach(function(b){b.onclick=function(){show(b.dataset.t)}});
+$('#loginBtn').onclick=login;$('#pw').onkeydown=function(e){if(e.key==='Enter')login()};$('#logout').onclick=logout;
+$('#testTo').value=ls('testTo')||'jakub.nejno.invette@gmail.com';
+if(ls('mk')){KEY=ls('mk');login()}
+})();
+</script>
+</body></html>
