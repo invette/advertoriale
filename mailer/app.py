@@ -1,9 +1,11 @@
-# Synthagen Mailer: panel do wysylki mailingow przez Amazon SES (AWS Lambda + Function URL + S3)
-import base64, csv, datetime, html as H, io, json, os, re, time, uuid
+# Synthagen Mailer: panel do wysylki mailingow przez Amazon SES
+# AWS Lambda (Function URL) + S3 (lista, szablon, kampanie) + DynamoDB (statystyki z SES przez EventBridge)
+import base64, csv, datetime, hashlib, html as H, io, json, os, re, time, uuid
 import boto3
 from botocore.exceptions import ClientError
 
 B = os.environ.get('BUCKET', '')
+T = os.environ.get('TABLE', '')
 PW = os.environ.get('PANEL_PASSWORD', '')
 REGION = os.environ.get('SES_REGION', 'eu-north-1')
 CS = os.environ.get('CONFIG_SET', 'bm-pl')
@@ -15,7 +17,7 @@ s3 = boto3.client('s3')
 ses = boto3.client('sesv2', region_name=REGION)
 ses1 = boto3.client('ses', region_name=REGION)
 lam = boto3.client('lambda')
-cw = boto3.client('cloudwatch', region_name=REGION)
+ddb = boto3.client('dynamodb', region_name=REGION)
 PANEL = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'panel.html'), encoding='utf-8').read()
 EMAIL_RE = re.compile(r'^[^@\s,;<>"]+@[^@\s,;<>"]+\.[A-Za-z]{2,}$')
 FIELDS = ['email', 'first_name', 'segment', 'added']
@@ -52,9 +54,12 @@ def jput(key, obj):
     s3put(key, json.dumps(obj, ensure_ascii=False))
 
 
-def load_contacts():
-    t = s3get('contacts.csv', '')
+def parse_contacts(t):
     return [{k: (r.get(k) or '').strip() for k in FIELDS} for r in csv.DictReader(io.StringIO(t))] if t else []
+
+
+def load_contacts():
+    return parse_contacts(s3get('contacts.csv', ''))
 
 
 def save_contacts(rows):
@@ -63,6 +68,113 @@ def save_contacts(rows):
     w.writeheader()
     w.writerows(rows)
     s3put('contacts.csv', out.getvalue(), 'text/csv')
+
+
+def seg_of(r):
+    return r['segment'] or '(brak)'
+
+
+def matches(rows, f):
+    q, sg = (f.get('q') or '').lower().strip(), f.get('seg') or ''
+    return [r for r in rows if (not q or q in r['email'].lower() or q in r['first_name'].lower()) and (not sg or seg_of(r) == sg)]
+
+
+# ---------- DynamoDB (statystyki) ----------
+def plain(item):
+    return {k: (int(float(v['N'])) if 'N' in v else v.get('S')) for k, v in item.items()}
+
+
+def ddb_add(pk, sk, inc):
+    ks = list(inc)
+    ddb.update_item(TableName=T, Key={'pk': {'S': pk}, 'sk': {'S': sk}},
+                    UpdateExpression='ADD ' + ', '.join('#k%d :v%d' % (i, i) for i in range(len(ks))),
+                    ExpressionAttributeNames={'#k%d' % i: k for i, k in enumerate(ks)},
+                    ExpressionAttributeValues={':v%d' % i: {'N': str(inc[k])} for i, k in enumerate(ks)})
+
+
+def ddb_first(pk, sk, attrs):
+    item = {'pk': {'S': pk}, 'sk': {'S': sk}}
+    item.update({k: {'S': str(v)} for k, v in attrs.items() if v})
+    try:
+        ddb.put_item(TableName=T, Item=item, ConditionExpression='attribute_not_exists(sk)')
+        return True
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+            return False
+        raise
+
+
+def ddb_query(pk, prefix):
+    out, start = [], None
+    while True:
+        kw = dict(TableName=T, KeyConditionExpression='pk = :p AND begins_with(sk, :s)',
+                  ExpressionAttributeValues={':p': {'S': pk}, ':s': {'S': prefix}})
+        if start:
+            kw['ExclusiveStartKey'] = start
+        r = ddb.query(**kw)
+        out += [plain(i) for i in r.get('Items', [])]
+        start = r.get('LastEvaluatedKey')
+        if not start:
+            return out
+
+
+def ddb_stats(tags):
+    out = {}
+    if not T or not tags:
+        return out
+    keys = [{'pk': {'S': t}, 'sk': {'S': '#stats'}} for t in tags]
+    try:
+        for i in range(0, len(keys), 100):
+            req = {T: {'Keys': keys[i:i + 100]}}
+            for _ in range(5):
+                r = ddb.batch_get_item(RequestItems=req)
+                for it in r.get('Responses', {}).get(T, []):
+                    p = plain(it)
+                    out[p['pk']] = p
+                req = r.get('UnprocessedKeys') or {}
+                if not req:
+                    break
+                time.sleep(0.3)
+    except ClientError:
+        pass
+    return out
+
+
+EVT = {'Send': 'send', 'Delivery': 'delivery', 'Open': 'open', 'Click': 'click', 'Bounce': 'bounce', 'Complaint': 'complaint',
+       'Reject': 'reject', 'Subscription': 'unsub', 'DeliveryDelay': 'delay', 'Rendering Failure': 'renderfail'}
+
+
+def on_ses_event(ev):
+    d = ev.get('detail') or {}
+    et = d.get('eventType') or d.get('notificationType') or ''
+    mail = d.get('mail') or {}
+    tag = ((mail.get('tags') or {}).get('campaign') or [''])[0]
+    k = EVT.get(et)
+    if not tag or not k or not T:
+        return
+    email = ((mail.get('destination') or [''])[0] or '').lower()
+    sub = d.get({'Rendering Failure': 'failure', 'DeliveryDelay': 'deliveryDelay'}.get(et, et.lower())) or {}
+    ts = sub.get('timestamp') or mail.get('timestamp') or iso()
+    extra = {'ts': ts}
+    if k == 'bounce':
+        extra['why'] = '%s/%s' % (sub.get('bounceType', ''), sub.get('bounceSubType', ''))
+        if sub.get('bounceType') != 'Permanent':
+            k = 'softbounce'
+    if k == 'unsub':
+        new = json.dumps(sub.get('newTopicPreferences') or {})
+        if '"unsubscribeAll": true' not in new and 'OptOut' not in new and 'OPT_OUT' not in new:
+            return
+    if k == 'click':
+        extra['link'] = (sub.get('link') or '')[:900]
+    ddb_add(tag, '#stats', {'t_' + k: 1})
+    if ddb_first(tag, 'u#%s#%s' % (k, email), extra):
+        ddb_add(tag, '#stats', {'u_' + k: 1})
+        if k in ('open', 'click'):
+            ddb_add(tag, 'h#' + ts[:13], {k: 1})
+    if k == 'click' and extra['link']:
+        link = extra['link']
+        first = ddb_first(tag, 'ul#%s#%s' % (hashlib.sha1(link.encode()).hexdigest()[:16], email), {'ts': ts})
+        ddb_add(tag, 'l#' + link, {'t': 1, 'u': 1} if first else {'t': 1})
 
 
 # ---------- SES ----------
@@ -78,6 +190,24 @@ def unsubscribed():
                 topic_out = any(t.get('TopicName') == TOPIC and t.get('SubscriptionStatus') == 'OPT_OUT' for t in c.get('TopicPreferences', []))
                 if c.get('UnsubscribeAll') or topic_out:
                     out.add(c['EmailAddress'].lower())
+            token = r.get('NextToken')
+            if not token:
+                break
+    except ClientError:
+        pass
+    return out
+
+
+def suppressed():
+    out, token = {}, None
+    try:
+        while True:
+            kw = {'Reasons': ['BOUNCE', 'COMPLAINT'], 'PageSize': 1000}
+            if token:
+                kw['NextToken'] = token
+            r = ses.list_suppressed_destinations(**kw)
+            for s in r.get('SuppressedDestinationSummaries', []):
+                out[s['EmailAddress'].lower()] = s.get('Reason', '')
             token = r.get('NextToken')
             if not token:
                 break
@@ -150,35 +280,32 @@ def health(start):
     return sum(p['DeliveryAttempts'] for p in pts), sum(p['Bounces'] for p in pts), sum(p['Complaints'] for p in pts)
 
 
-def stats(tag, since):
-    start = max(datetime.datetime.fromisoformat(since) - datetime.timedelta(hours=1), now() - datetime.timedelta(days=14))
-    names = ['Send', 'Delivery', 'Bounce', 'Complaint', 'Open', 'Click', 'Reject', 'Subscription']
-    q = [{'Id': 'm%d' % i, 'MetricStat': {'Metric': {'Namespace': 'AWS/SES', 'MetricName': n, 'Dimensions': [{'Name': 'campaign', 'Value': tag}]},
-                                          'Period': 3600, 'Stat': 'Sum'}} for i, n in enumerate(names)]
-    out = {n: 0 for n in names}
-    try:
-        r = cw.get_metric_data(MetricDataQueries=q, StartTime=start, EndTime=now() + datetime.timedelta(minutes=5))
-        for res in r['MetricDataResults']:
-            out[names[int(res['Id'][1:])]] = int(sum(res['Values']))
-    except ClientError as e:
-        out['error'] = str(e)
-    return out
-
-
 # ---------- kampanie ----------
 def campaign_summary(c):
-    return {k: c.get(k) for k in ('id', 'name', 'tag', 'status', 'total', 'sent', 'errors', 'created', 'started', 'finished', 'segments', 'note', 'subject')}
+    return {k: c.get(k) for k in ('id', 'name', 'tag', 'status', 'total', 'sent', 'errors', 'created', 'started', 'finished', 'segments', 'note', 'subject', 'rate')}
 
 
-def list_campaigns():
-    r = s3.list_objects_v2(Bucket=B, Prefix='campaigns/')
-    out = []
-    for o in r.get('Contents', []):
-        if o['Key'].endswith('.json'):
-            c = jget(o['Key'])
-            if c:
-                out.append(campaign_summary(c))
-    return sorted(out, key=lambda c: c.get('created') or '', reverse=True)
+def list_campaigns(with_stats=False):
+    out, token = [], None
+    while True:
+        kw = {'Bucket': B, 'Prefix': 'campaigns/'}
+        if token:
+            kw['ContinuationToken'] = token
+        r = s3.list_objects_v2(**kw)
+        for o in r.get('Contents', []):
+            if o['Key'].endswith('.json'):
+                c = jget(o['Key'])
+                if c:
+                    out.append(campaign_summary(c))
+        token = r.get('NextContinuationToken')
+        if not token:
+            break
+    out.sort(key=lambda c: c.get('created') or '', reverse=True)
+    if with_stats:
+        st = ddb_stats([c['tag'] for c in out])
+        for c in out:
+            c['st'] = st.get(c['tag'], {})
+    return out
 
 
 def checkpoint(key, c, i):
@@ -258,6 +385,19 @@ def run_job(cid, context):
     jput(key, c)
 
 
+def campaign_report(c):
+    tag = c['tag']
+    st = ddb_stats([tag]).get(tag, {})
+    hours, links = [], []
+    if T:
+        try:
+            hours = [{'h': x['sk'][2:], 'open': x.get('open', 0), 'click': x.get('click', 0)} for x in ddb_query(tag, 'h#')]
+            links = sorted(({'url': x['sk'][2:], 't': x.get('t', 0), 'u': x.get('u', 0)} for x in ddb_query(tag, 'l#')), key=lambda x: -x['u'])
+        except ClientError:
+            pass
+    return st, hours, links
+
+
 # ---------- HTTP ----------
 def resp(code, body, ctype='application/json; charset=utf-8'):
     return {'statusCode': code, 'headers': {'content-type': ctype, 'cache-control': 'no-store', 'x-robots-tag': 'noindex'},
@@ -272,6 +412,7 @@ def parse_import(text, segment):
     sample = lines[0]
     delim = ';' if sample.count(';') > sample.count(',') else ','
     head = [h.strip().lower().strip('"') for h in next(csv.reader([sample], delimiter=delim))]
+
     def idx(*names):
         for n in names:
             if n in head:
@@ -298,12 +439,44 @@ def parse_import(text, segment):
     return out
 
 
+def selection(rows, data):
+    """Wybor kontaktow z zapytania: lista adresow, filtr (wyszukiwanie/grupa) albo wszystko."""
+    if data.get('all'):
+        return set(r['email'] for r in rows)
+    if data.get('filter') is not None:
+        return set(r['email'] for r in matches(rows, data['filter']))
+    return set(x.strip().lower() for x in data.get('emails', []))
+
+
+def to_clean(rows):
+    """Adresy z listy, ktore warto usunac: wypisani, trwale odbite, zgloszone jako spam."""
+    have = {r['email'] for r in rows}
+    why = {}
+    for e in unsubscribed():
+        if e in have:
+            why[e] = 'wypisany'
+    for e, reason in suppressed().items():
+        if e in have and e not in why:
+            why[e] = 'spam' if reason == 'COMPLAINT' else 'odbity'
+    if T:
+        for c in list_campaigns():
+            for kind, label in (('bounce', 'odbity'), ('complaint', 'spam'), ('unsub', 'wypisany')):
+                try:
+                    for x in ddb_query(c['tag'], 'u#%s#' % kind):
+                        e = x['sk'].split('#', 2)[2]
+                        if e in have and e not in why:
+                            why[e] = label
+                except ClientError:
+                    pass
+    return why
+
+
 def api(method, path, data, qs, context):
     if path == '/api/state':
         rows = load_contacts()
         seg = {}
         for r in rows:
-            seg[r['segment'] or '(brak)'] = seg.get(r['segment'] or '(brak)', 0) + 1
+            seg[seg_of(r)] = seg.get(seg_of(r), 0) + 1
         try:
             acc = ses.get_account()['SendQuota']
         except ClientError:
@@ -311,16 +484,11 @@ def api(method, path, data, qs, context):
         uns = unsubscribed()
         return {'total': len(rows), 'segments': seg, 'template': jget('template.json', {}), 'quota': acc,
                 'unsubscribed': len(uns), 'unsubscribed_in_list': sum(1 for r in rows if r['email'].lower() in uns),
-                'campaigns': list_campaigns()[:20]}
+                'campaigns': list_campaigns(with_stats=True)[:30]}
     if path == '/api/contacts' and method == 'GET':
-        rows = load_contacts()
+        rows = matches(load_contacts(), qs)
         uns = unsubscribed()
-        q, sg = (qs.get('q') or '').lower().strip(), qs.get('seg') or ''
-        if q:
-            rows = [r for r in rows if q in r['email'].lower() or q in r['first_name'].lower()]
-        if sg:
-            rows = [r for r in rows if (r['segment'] or '(brak)') == sg]
-        page, size = int(qs.get('page') or 1), int(qs.get('size') or 100)
+        page, size = max(1, int(qs.get('page') or 1)), int(qs.get('size') or 100)
         part = rows[(page - 1) * size: page * size]
         for r in part:
             r['unsub'] = r['email'].lower() in uns
@@ -347,13 +515,48 @@ def api(method, path, data, qs, context):
         save_contacts(rows)
         return {'ok': True}
     if path == '/api/contacts/delete':
-        drop = set(x.strip().lower() for x in data.get('emails', []))
-        if data.get('segment'):
-            rows = [r for r in load_contacts() if r['segment'] != data['segment']]
-        else:
-            rows = [r for r in load_contacts() if r['email'] not in drop]
+        rows = load_contacts()
+        drop = selection(rows, data)
+        keep = [r for r in rows if r['email'] not in drop]
+        save_contacts(keep)
+        return {'ok': True, 'removed': len(rows) - len(keep), 'total': len(keep)}
+    if path == '/api/contacts/segment':
+        seg = (data.get('segment') or '').strip()
+        if not seg:
+            return {'error': 'Podaj nazwę grupy'}
+        rows = load_contacts()
+        pick = selection(rows, data)
+        n = 0
+        for r in rows:
+            if r['email'] in pick:
+                r['segment'] = seg
+                n += 1
         save_contacts(rows)
-        return {'ok': True, 'total': len(rows)}
+        return {'ok': True, 'changed': n}
+    if path == '/api/contacts/clean':
+        rows = load_contacts()
+        why = to_clean(rows)
+        if not data.get('apply'):
+            cnt = {}
+            for v in why.values():
+                cnt[v] = cnt.get(v, 0) + 1
+            return {'count': len(why), 'by': cnt, 'sample': sorted(why.items())[:30]}
+        keep = [r for r in rows if r['email'] not in why]
+        save_contacts(keep)
+        return {'ok': True, 'removed': len(rows) - len(keep), 'total': len(keep)}
+    if path == '/api/contacts/versions':
+        vs = [v for v in s3.list_object_versions(Bucket=B, Prefix='contacts.csv').get('Versions', []) if v['Key'] == 'contacts.csv']
+        vs.sort(key=lambda v: v['LastModified'], reverse=True)
+        out = []
+        for v in vs[:12]:
+            body = s3.get_object(Bucket=B, Key='contacts.csv', VersionId=v['VersionId'])['Body'].read().decode('utf-8')
+            out.append({'id': v['VersionId'], 'date': v['LastModified'].isoformat(), 'count': len(parse_contacts(body)), 'current': v.get('IsLatest', False)})
+        return {'versions': out}
+    if path == '/api/contacts/restore':
+        vid = data.get('id') or ''
+        body = s3.get_object(Bucket=B, Key='contacts.csv', VersionId=vid)['Body'].read().decode('utf-8')
+        s3put('contacts.csv', body, 'text/csv')
+        return {'ok': True, 'total': len(parse_contacts(body))}
     if path == '/api/contacts/import':
         new = parse_import(data.get('csv') or '', (data.get('segment') or '').strip())
         rows = [] if data.get('mode') == 'replace' else load_contacts()
@@ -415,7 +618,7 @@ def api(method, path, data, qs, context):
             return {'error': 'W szablonie brakuje linku do wypisania się ({{amazonSESUnsubscribeUrl}}).'}
         segs = data.get('segments') or []
         uns = unsubscribed()
-        rows = [r for r in load_contacts() if (not segs or (r['segment'] or '(brak)') in segs) and r['email'].lower() not in uns]
+        rows = [r for r in load_contacts() if (not segs or seg_of(r) in segs) and r['email'].lower() not in uns]
         if data.get('exclude_sent'):
             sent = set()
             for c in list_campaigns():
@@ -438,7 +641,7 @@ def api(method, path, data, qs, context):
         jput('campaigns/%s.json' % cid, c)
         lam.invoke(FunctionName=context.function_name, InvocationType='Event', Payload=json.dumps({'job': cid}).encode())
         return {'ok': True, 'campaign': campaign_summary(c)}
-    m = re.match(r'^/api/campaigns/([\w-]+)(/stop|/stats)?$', path)
+    m = re.match(r'^/api/campaigns/([\w-]+)(/stop|/stats|/people)?$', path)
     if m:
         cid, act = m.group(1), m.group(2)
         key = 'campaigns/%s.json' % cid
@@ -450,11 +653,18 @@ def api(method, path, data, qs, context):
                 c['status'] = 'stopping'
                 jput(key, c)
             return {'ok': True}
+        if act == '/people':
+            kind = qs.get('type') or 'click'
+            if kind not in ('open', 'click', 'bounce', 'softbounce', 'unsub', 'complaint', 'delivery', 'reject'):
+                return {'error': 'Zły typ'}
+            rows = [{'email': x['sk'].split('#', 2)[2], 'ts': x.get('ts', ''), 'link': x.get('link', ''), 'why': x.get('why', '')} for x in ddb_query(c['tag'], 'u#%s#' % kind)] if T else []
+            rows.sort(key=lambda r: r['ts'])
+            return {'rows': rows, 'total': len(rows)}
         out = campaign_summary(c)
         out['cursor'] = c.get('cursor', 0)
         out['error_list'] = c.get('error_list', [])[-10:]
         if act == '/stats':
-            out['stats'] = stats(c['tag'], c.get('started') or c['created'])
+            out['stats'], out['hours'], out['links'] = campaign_report(c)
         return out
     return {'error': 'Nieznany adres'}
 
@@ -462,6 +672,8 @@ def api(method, path, data, qs, context):
 def handler(event, context):
     if isinstance(event, dict) and 'job' in event:
         return run_job(event['job'], context)
+    if isinstance(event, dict) and event.get('source') == 'aws.ses':
+        return on_ses_event(event)
     http = (event.get('requestContext') or {}).get('http') or {}
     method, path = http.get('method', 'GET'), event.get('rawPath', '/')
     if method == 'GET' and path in ('/', '/index.html'):
