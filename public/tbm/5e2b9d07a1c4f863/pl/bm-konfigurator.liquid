@@ -1,0 +1,256 @@
+{%- comment -%}
+  Black Month: konfigurator zestawu. Jedna lista produktów (dwie kolekcje łączone w jedną), rabat od wartości koszyka.
+  Rabaty nalicza Shopify (rabaty automatyczne „Black Month −X%”: kwota rabatu na wszystkie produkty, minimalna wartość zakupu).
+  Progi w ustawieniach sekcji (kwota zł : rabat %) MUSZĄ być takie same jak w rabatach.
+{%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,800..900&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+.bmk{--bg:#fff;--bg2:#F3F5FA;--soft2:#F5F7FF;--line:#E3E7F0;--txt:#0A0F1F;--muted:#5B6382;--btn:#1F3BFF;--blue:#4A6CFF;--warn:#FFF4D6;--warnb:#E8B53A;--r:20px;
+ --fs:"Archivo",sans-serif;--fm:"JetBrains Mono",ui-monospace,monospace;color:var(--txt);font-size:15px;line-height:1.5}
+#bmk-{{ section.id }}{padding-bottom:110px}
+.bmk *{box-sizing:border-box}
+.bmk h1,.bmk h2,.bmk h3,.bmk h4,.bmk p{margin:0}
+.bmk button{font-family:inherit;cursor:pointer;letter-spacing:normal;text-transform:none}
+.bmk .w{max-width:1180px;margin:0 auto;padding:0 20px}
+.bmk .tag{font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--btn)}
+.bmk .hero{padding:40px 0 10px;display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:end}
+.bmk .hero h1{font:900 clamp(40px,7vw,88px)/.88 var(--fs);font-stretch:115%;letter-spacing:-.035em;text-transform:uppercase;margin-top:12px;color:var(--txt)}
+.bmk .hero h1 em{font-style:normal;color:var(--btn)}
+.bmk .hero p{color:var(--muted);font-size:14.5px}
+.bmk .how{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0 6px}
+.bmk .how div{background:var(--soft2);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center}
+.bmk .how b{flex:none;width:28px;height:28px;border-radius:50%;background:var(--btn);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.bmk .line{margin-top:34px}
+.bmk .lhd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.bmk .lhd h2{font-weight:800;font-size:22px;text-transform:uppercase}
+.bmk .lhd .big{font:900 34px/1 var(--fs);font-stretch:115%;letter-spacing:-.02em;color:var(--btn)}
+.bmk .lhd .big small{font-weight:600;font-size:12px;color:var(--muted);letter-spacing:0;margin-right:8px;font-family:inherit}
+.bmk .steps{display:grid;gap:8px;margin:16px 0 6px}
+.bmk .srow{display:grid;gap:8px}
+.bmk .st{border:1.5px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;background:var(--bg);transition:.2s;position:relative}
+.bmk .st b{display:block;font-weight:800;font-size:18px}
+.bmk .st span{font:600 11px var(--fm);color:var(--muted)}
+.bmk .st.done{border-color:var(--btn);background:var(--soft2)}
+.bmk .st.done b{color:var(--btn)}
+.bmk .st.cur{background:var(--btn);border-color:var(--btn)}
+.bmk .st.cur b,.bmk .st.cur span{color:#fff}
+.bmk .st.cur::after{content:"TWÓJ RABAT";position:absolute;left:50%;top:-9px;transform:translateX(-50%);background:var(--txt);color:#fff;font:600 8.5px var(--fm);letter-spacing:.1em;padding:2px 6px;border-radius:5px;white-space:nowrap}
+.bmk .msg{font-size:14px;color:var(--muted);min-height:22px}
+.bmk .msg b{color:var(--txt)}
+.bmk .nudge{display:none;margin-top:10px;background:var(--warn);border:1.5px solid var(--warnb);border-radius:14px;padding:11px 14px;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13.5px}
+.bmk .nudge.on{display:flex}
+.bmk .nudge button{border:0;background:var(--txt);color:#fff;border-radius:999px;padding:9px 16px;font-weight:700;font-size:12px}
+.bmk .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:12px;margin-top:14px}
+.bmk .pc{border:1.5px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:8px;background:var(--bg);transition:border-color .2s,box-shadow .2s}
+.bmk .pc.in{border-color:var(--btn);box-shadow:0 8px 24px rgba(31,59,255,.08)}
+.bmk .pc .im{aspect-ratio:1;border-radius:14px;background:var(--bg2);display:grid;place-items:center;overflow:hidden;border:0;width:100%;padding:8px;font-weight:800;font-size:12px;color:var(--blue)}
+.bmk .pc .im img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.bmk .pc h3{font-weight:800;font-size:13px;line-height:1.2;text-transform:uppercase}
+.bmk .pc .ds{font-size:12px;color:var(--muted);margin-top:-4px}
+.bmk .pr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.bmk .pr b{font-weight:800;font-size:16px}
+.bmk .pr s{color:var(--muted);font-size:12.5px}
+.bmk .add{height:44px;border-radius:999px;border:1.5px solid var(--btn);background:var(--bg);color:var(--btn);font-weight:700;font-size:13px}
+.bmk .pc.in .add{background:var(--btn);color:#fff}
+.bmk .add[disabled]{border-color:var(--line);color:var(--muted);cursor:default}
+.bmk-ov{position:fixed;inset:0;background:rgba(10,15,31,.45);z-index:2147483000;opacity:0;pointer-events:none;transition:opacity .2s}
+.bmk-ov.on{opacity:1;pointer-events:auto}
+.bmk .sh{position:fixed;left:0;right:0;bottom:0;z-index:2147483001;background:var(--bg);border-radius:24px 24px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);max-width:520px;margin:0 auto;box-shadow:0 -10px 40px rgba(10,15,31,.18)}
+.bmk .sh.on{transform:none}
+@media(min-width:701px){.bmk .sh{top:50%;bottom:auto;border-radius:24px;transform:translateY(-46%) scale(.97);opacity:0;pointer-events:none;transition:.22s}.bmk .sh.on{transform:translateY(-50%);opacity:1;pointer-events:auto}.bmk .sh .gr{display:none}}
+.bmk .sh .gr{width:44px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 14px}
+.bmk .sh .top{display:grid;grid-template-columns:64px 1fr 40px;gap:12px;align-items:center}
+.bmk .sh .top img,.bmk .sh .top .ph{width:64px;height:64px;object-fit:contain;border-radius:12px;background:var(--bg2);mix-blend-mode:multiply;display:block}
+.bmk .sh .top b{font-weight:800;font-size:15px;text-transform:uppercase;display:block}
+.bmk .sh .top span{font-size:12.5px;color:var(--muted)}
+.bmk .sh .x{width:40px;height:40px;border-radius:50%;border:0;background:var(--bg2);font-size:20px;color:var(--txt);padding:0}
+.bmk .sh h4{font:600 10.5px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.bmk .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bmk .chips button{border:1.5px solid var(--line);background:var(--bg);border-radius:14px;padding:9px 4px;font-weight:800;font-size:18px;color:var(--txt);display:grid;gap:1px;justify-items:center;min-height:64px}
+.bmk .chips button small{font:600 10.5px var(--fm);color:var(--btn)}
+.bmk .chips button i{font-style:normal;font-weight:500;font-size:10px;color:var(--muted)}
+.bmk .chips button.on{border-color:var(--btn);background:var(--btn);color:#fff}
+.bmk .chips button.on small,.bmk .chips button.on i{color:#dfe4ff}
+.bmk .sh .qrow{display:grid;grid-template-columns:52px 1fr 52px;gap:8px;margin-top:12px}
+.bmk .sh .qrow button{height:52px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);font-weight:700;font-size:22px;color:var(--txt);padding:0}
+.bmk .sh .qrow span{display:grid;place-items:center;border-radius:14px;background:var(--bg2);font-weight:800;font-size:20px}
+.bmk .sh .info{margin-top:12px;font-size:13px;color:var(--muted);text-align:center;min-height:20px}
+.bmk .sh .info b{color:var(--txt)}
+.bmk .sh .ok{margin-top:12px;width:100%;height:54px;border:0;border-radius:999px;background:var(--btn);color:#fff;font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+.bmk .mb{display:none}
+.bmk .sum{position:fixed;left:0;right:0;bottom:0;background:var(--txt);color:#fff;z-index:2147482000;padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px))}
+.bmk .sum{transition:transform .25s ease,visibility .25s}
+body.has-modal-open .bmk .sum{transform:translateY(110%);visibility:hidden;pointer-events:none}
+.bmk .sum .w{display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:center}
+.bmk .sum .ln{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:#C9D0EA}
+.bmk .sum .ln b{color:#fff}.bmk .sum .ln em{font-style:normal;color:#8FA2FF;font-weight:700}
+.bmk .sum .tot{text-align:right}
+.bmk .sum .tot s{color:#8D97BD;font-size:13px;display:block;white-space:nowrap}
+.bmk .sum .tot b{font-weight:800;font-size:26px;white-space:nowrap}
+.bmk .sum .tot small{display:block;font-size:11.5px;color:#9FB0FF}
+.bmk .sum .go{background:#fff;color:var(--txt);border:0;border-radius:999px;padding:16px 26px;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.bmk .sum .go[disabled]{opacity:.5;cursor:default}
+.bmk .err{color:#ffb4b4;font-size:12px;grid-column:1/-1;display:none}
+.bmk .err.on{display:block}
+@media(max-width:700px){
+ .bmk .hero{grid-template-columns:1fr;padding:22px 0 0}.bmk .hero h1{font-size:44px}.bmk .hero p{font-size:13.5px}
+ .bmk .how{grid-template-columns:1fr;gap:6px;margin-top:16px}.bmk .how div{padding:9px 12px}
+ .bmk .mb{display:block;position:sticky;top:var(--bmk-top,0px);z-index:8;background:var(--bg);border-bottom:1px solid var(--line);margin:14px -20px 0;padding:6px 20px}
+ .bmk .mb a{display:grid;grid-template-columns:1fr auto;gap:0 10px;align-items:center;text-decoration:none;color:var(--txt);padding:5px 0}
+ .bmk .mb a+a{border-top:1px solid var(--line)}
+ .bmk .mb a b{font-weight:800;font-size:13px}
+ .bmk .mb a em{font-style:normal;font-weight:800;font-size:13px;color:var(--btn);text-align:right}
+ .bmk .mb a span{grid-column:1/-1;font-size:11.5px;color:var(--muted)}
+ .bmk .mb a span strong{color:var(--txt)}
+ .bmk .line{margin-top:24px;scroll-margin-top:120px}
+ .bmk .lhd h2{font-size:17px}.bmk .lhd .big{font-size:26px}
+ .bmk .srow{gap:5px;grid-template-columns:repeat(4,1fr)!important;row-gap:12px}.bmk .st{padding:8px 2px;border-radius:12px}.bmk .st b{font-size:14px}.bmk .st span{font-size:9.5px}
+ .bmk .msg{font-size:13px}
+ .bmk .grid{grid-template-columns:1fr;gap:8px}
+ .bmk .pc{grid-template-columns:64px 1fr auto;align-items:center;gap:2px 12px;padding:10px;border-radius:16px}
+ .bmk .pc .im{grid-row:1/4;width:64px;height:64px;padding:0;border-radius:12px;font-size:8.5px}
+ .bmk .pc h3{grid-column:2;font-size:12.5px}.bmk .pc .ds{grid-column:2;margin:0;font-size:11.5px}.bmk .pc .pr{grid-column:2}
+ .bmk .pc .add{grid-column:3;grid-row:1/4;min-width:86px;padding:0 14px}
+ .bmk .sum{padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px))}
+ .bmk .sum .w{grid-template-columns:1fr auto;gap:12px}.bmk .sum .ln{display:none}
+ .bmk .sum .tot{text-align:left}.bmk .sum .tot b{font-size:21px}.bmk .sum .tot s{display:inline;margin-right:6px;font-size:12px}
+ .bmk .sum .tot small .av{display:none}
+ .bmk .sum .go{padding:15px 18px;font-size:12px}.bmk .sum .go .lg{display:none}
+ #bmk-{{ section.id }}{padding-bottom:90px}
+}
+</style>
+
+<div class="bmk" id="bmk-{{ section.id }}">
+ <div class="w">
+  <section class="hero">
+   <div><span class="tag">{{ section.settings.eyebrow }}</span><h1>{{ section.settings.title_1 }}<br><em>{{ section.settings.title_2 }}</em></h1></div>
+   <p>{{ section.settings.lead }}</p>
+  </section>
+  <div class="how"><div><b>1</b>Kliknij produkt i wybierz, ile słoików chcesz</div><div><b>2</b>Pasek pokazuje Twój rabat i ile brakuje do kolejnego progu</div><div><b>3</b>Rabat nalicza się sam w koszyku</div></div>
+  <div class="mb" data-mb></div>
+  <div data-lines></div>
+ </div>
+ <div class="bmk-ov" data-ov></div>
+ <div class="sh" data-sh role="dialog" aria-modal="true" aria-label="Wybierz ilość"><div class="gr"></div>
+  <div class="top"><span data-shi></span><div><b data-shn></b><span data-shp></span></div><button class="x" data-shx aria-label="Zamknij">×</button></div>
+  <h4>Ile słoików?</h4><div class="chips" data-shc></div>
+  <div class="qrow"><button data-shm aria-label="Mniej">−</button><span data-shq>0</span><button data-shpl aria-label="Więcej">+</button></div>
+  <div class="info" data-shinfo></div><button class="ok" data-shok>Gotowe</button>
+ </div>
+ <div class="sum"><div class="w">
+  <div class="ln" data-sln></div>
+  <div class="tot"><s data-sold></s><b data-stot>0,00 zł</b><small data-ssave></small></div>
+  <button class="go" data-go>Do koszyka<span class="lg"> · dodaj zestaw</span></button>
+  <p class="err" data-err>Nie udało się dodać do koszyka. Spróbuj ponownie.</p>
+ </div></div>
+ {%- comment -%} Dane produktów: wariant = najtańszy dostępny (1 słoik). Cena w groszach. {%- endcomment -%}
+ <script type="application/json" data-bmk-data>
+ {
+  "cartUrl": {{ routes.cart_url | json }},
+  "addUrl": {{ routes.cart_add_url | append: '.js' | json }},
+  "name": {{ section.settings.name_all | json }},
+  "tiers": {{ section.settings.tiers | json }},
+  "chips": {{ section.settings.chips | json }},
+  "items": [
+  {%- assign bmk_first = true -%}
+  {%- for key in (1..2) -%}
+   {%- if key == 1 -%}{%- assign c = section.settings.col_pep -%}{%- else -%}{%- assign c = section.settings.col_nut -%}{%- endif -%}
+   {%- if c != blank -%}
+    {%- for p in c.products limit: 24 -%}
+     {%- assign v = p.variants | where: 'available', true | sort: 'price' | first -%}
+     {%- if v -%}
+      {%- unless bmk_first -%},{%- endunless -%}{%- assign bmk_first = false -%}
+      {"id": {{ v.id }}, "n": {{ p.title | json }}, "d": {{ p.metafields.custom.bm_opis | default: p.type | json }}, "p": {{ v.price }}, "img": {{ p.featured_image | image_url: width: 300 | json }}}
+     {%- endif -%}
+    {%- endfor -%}
+   {%- endif -%}
+  {%- endfor -%}
+  ]
+ }
+ </script>
+</div>
+
+<script>
+(function(){
+ var root=document.getElementById('bmk-{{ section.id }}');if(!root||root.dataset.ready)return;root.dataset.ready=1;
+ var D=JSON.parse(root.querySelector('[data-bmk-data]').textContent);
+ var port=document.createElement('div');port.className='bmk bmk-port';
+ function q(s){return root.querySelector(s)||port.querySelector(s)}
+ var T=String(D.tiers).split(',').map(function(x){var a=x.split(':');return[+a[0],+a[1]]}).filter(function(t){return t[0]>0&&t[1]>0}).sort(function(a,b){return a[0]-b[0]});
+ var MAX=T.length?T[T.length-1][1]:0,CH=String(D.chips).split(',').map(Number).filter(Boolean),seen={},IT=[];
+ D.items.forEach(function(it){var id=String(it.id);if(seen[id])return;seen[id]=1;IT.push({id:id,n:it.n,d:it.d||'',pc:+it.p,img:it.img||''})});
+ if(!IT.length||!T.length)return;
+ var Q={},SH=null,NAME=D.name||'Wszystkie produkty';
+ function zl(c){var v=(Math.round(c)/100).toFixed(2).split('.');return v[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+v[1]+' zł'}
+ function kz(z){return String(z).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' zł'}
+ function cnt(){return IT.reduce(function(a,it){return a+(Q[it.id]||0)},0)}
+ function reg(Qx){Qx=Qx||Q;return IT.reduce(function(a,it){return a+(Qx[it.id]||0)*it.pc},0)}
+ function dsc(c){var r=0;T.forEach(function(t){if(c>=t[0]*100)r=t[1]});return r}
+ function lt(pc,n,d){var l=pc*n;return l-Math.round(l*d/100)}
+ function tot(Qx){Qx=Qx||Q;var d=dsc(reg(Qx));return IT.reduce(function(a,it){return a+lt(it.pc,Qx[it.id]||0,d)},0)}
+ function next(c){return T.filter(function(t){return t[0]*100>c})[0]}
+ function best(){var n=cnt(),now=tot(),b=null;if(!n)return null;var sel=IT.filter(function(x){return Q[x.id]}).sort(function(a,b){return a.pc-b.pc})[0];
+  for(var k=1;k<=12;k++){var Qx={};for(var i in Q)Qx[i]=Q[i];Qx[sel.id]=(Qx[sel.id]||0)+k;var t=tot(Qx);if(t<=now+1)b=[k,t,sel]}return b}
+ function find(id){for(var i=0;i<IT.length;i++)if(IT[i].id===id)return IT[i]}
+ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+ var sid='{{ section.id }}';
+ q('[data-lines]').innerHTML='<section class="line" id="bmk-'+sid+'-all"><div class="lhd"><h2>'+esc(NAME)+'</h2><div class="big" data-bg></div></div><div class="steps"><div class="srow" data-sr style="grid-template-columns:repeat('+T.length+',1fr)"></div></div><p class="msg" data-ms></p><div class="nudge" data-nd><span></span><button type="button"></button></div><div class="grid" data-g></div></section>';
+ function drawLine(){var n=cnt(),R=reg(),d=dsc(R),nx=next(R);
+  q('[data-bg]').innerHTML='<small>'+(n?n+' szt. w zestawie':'rabat do')+'</small>−'+(n?d:MAX)+'%';
+  var curI=-1;T.forEach(function(t,i){if(R>=t[0]*100)curI=i});
+  q('[data-sr]').innerHTML=T.map(function(t,i){return '<div class="st'+(i<curI?' done':'')+(i===curI?' cur':'')+'"><b>−'+t[1]+'%</b><span>od '+kz(t[0])+'</span></div>'}).join('');
+  q('[data-ms]').innerHTML=!n?'Zacznij od dowolnego produktu. Pierwszy rabat od <b>'+kz(T[0][0])+'</b>, to np. 2 słoiki.':nx?'Dodaj produkty za <b>'+zl(nx[0]*100-R)+'</b>, a rabat '+(d?'wzrośnie do':'wyniesie')+' <b>−'+nx[1]+'%</b>. Liczy się wartość całego zestawu.':'<b>Masz maksymalny rabat −'+d+'%.</b>';
+  var b=best(),nd=q('[data-nd]');nd.classList.toggle('on',!!b);if(b){nd.querySelector('span').innerHTML='Za <b>'+zl(b[1])+'</b> zamiast '+zl(tot())+' weźmiesz <b>'+(n+b[0])+' szt.</b> zamiast '+n+'. Wyższy próg sprawia, że więcej kosztuje mniej.';var bt=nd.querySelector('button');bt.textContent='Dobierz '+b[0]+' szt.';bt.onclick=function(){Q[b[2].id]=(Q[b[2].id]||0)+b[0];draw()}}
+  var g=q('[data-g]');
+  g.innerHTML=IT.map(function(it){var c=Q[it.id]||0;return '<div class="pc'+(c?' in':'')+'"><button type="button" class="im" data-open="'+it.id+'" aria-label="'+esc(it.n)+'">'+(it.img?'<img src="'+esc(it.img)+'" alt="" loading="lazy">':esc(it.n))+'</button><h3>'+esc(it.n)+'</h3><span class="ds">'+esc(it.d)+'</span><div class="pr"><b>'+zl(lt(it.pc,1,d))+'</b>'+(d?'<s>'+zl(it.pc)+'</s>':'')+'</div><button type="button" class="add" data-open="'+it.id+'">'+(c?c+' szt. · zmień':'Dodaj')+'</button></div>'}).join('');
+  g.querySelectorAll('[data-open]').forEach(function(b){b.onclick=function(){openSh(b.dataset.open)}})}
+ var sh=q('[data-sh]'),ov=q('[data-ov]');port.appendChild(ov);port.appendChild(sh);port.appendChild(q('.sum'));document.body.appendChild(port);
+ function openSh(id){SH=id;drawSh();sh.classList.add('on');ov.classList.add('on')}
+ function closeSh(){sh.classList.remove('on');ov.classList.remove('on');SH=null}
+ function drawSh(){if(!SH)return;var it=find(SH),c=Q[SH]||0,restV=reg()-c*it.pc;
+  q('[data-shi]').innerHTML=it.img?'<img src="'+esc(it.img)+'" alt="">':'<span class="ph"></span>';q('[data-shn]').textContent=it.n;q('[data-shp]').textContent=(it.d?it.d+' · ':'')+zl(it.pc)+' za słoik';
+  var ch=q('[data-shc]');ch.innerHTML=CH.map(function(x){var d=dsc(restV+x*it.pc);return '<button type="button" data-c="'+x+'" class="'+(x===c?'on':'')+'">'+x+'<small>'+(d?'−'+d+'%':'cena bazowa')+'</small><i>'+zl(lt(it.pc,1,d)).replace(',00','')+'/szt.</i></button>'}).join('');
+  ch.querySelectorAll('button').forEach(function(b){b.onclick=function(){Q[SH]=+b.dataset.c;draw()}});
+  q('[data-shq]').textContent=c;var R=reg(),d=dsc(R),nx=next(R);
+  q('[data-shinfo]').innerHTML=(restV>0?'W zestawie masz już inne produkty za '+zl(restV)+'. ':'')+(c?'Ten produkt: <b>'+c+' × '+zl(lt(it.pc,1,d))+'</b>.':'Wybierz ilość.')+(nx&&c?' Do −'+nx[1]+'% brakuje '+zl(nx[0]*100-R)+'.':'')}
+ q('[data-shx]').onclick=closeSh;ov.onclick=closeSh;q('[data-shok]').onclick=closeSh;
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&SH)closeSh()});
+ q('[data-shm]').onclick=function(){Q[SH]=Math.max(0,(Q[SH]||0)-1);if(!Q[SH])delete Q[SH];draw()};
+ q('[data-shpl]').onclick=function(){Q[SH]=(Q[SH]||0)+1;draw()};
+ function mbar(){var n=cnt(),R=reg(),d=dsc(R),nx=next(R);q('[data-mb]').innerHTML='<a href="#bmk-'+sid+'-all"><b>Twój zestaw'+(n?' · '+n+' szt.':'')+'</b><em>'+(n&&d?'−'+d+'%':'do −'+MAX+'%')+'</em><span>'+(nx?'Jeszcze <strong>'+zl(nx[0]*100-R)+'</strong> do −'+nx[1]+'%':'<strong>Maksymalny rabat</strong>')+'</span></a>'}
+ function sum(){var n=cnt(),R=reg(),Tt=tot(),d=dsc(R);
+  q('[data-sln]').innerHTML=n?'<span>Zestaw: <b>'+n+' szt.</b> '+(d?'<em>−'+d+'%</em>':'')+'</span>'+(next(R)?'<span>Do −'+next(R)[1]+'%: <b>'+zl(next(R)[0]*100-R)+'</b></span>':''):'<span>Twój zestaw jest pusty. Kliknij produkt, żeby dodać słoiki.</span>';
+  q('[data-sold]').textContent=R>Tt?zl(R):'';q('[data-stot]').textContent=zl(Tt);q('[data-ssave]').innerHTML=n?((R>Tt?'Oszczędzasz '+zl(R-Tt):'Jeszcze bez rabatu')+'<span class="av"> · średnio '+zl(Tt/n)+' za słoik</span>'):'';
+  q('[data-go]').disabled=!n}
+ function draw(){drawLine();mbar();sum();drawSh()}
+ q('[data-go]').onclick=function(){var b=this,items=[];Object.keys(Q).forEach(function(id){if(Q[id]>0)items.push({id:+id,quantity:Q[id]})});if(!items.length)return;
+  b.disabled=true;q('[data-err]').classList.remove('on');
+  fetch(D.addUrl,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({items:items})})
+   .then(function(r){if(!r.ok)throw r;return r.json()})
+   .then(function(){window.location.href=D.cartUrl})
+   .catch(function(){b.disabled=false;q('[data-err]').classList.add('on')})};
+ var hd=document.querySelector('sticky-header,.header-wrapper,header');if(hd&&getComputedStyle(hd).position==='sticky')root.style.setProperty('--bmk-top',hd.offsetHeight+'px');
+ draw();
+})();
+</script>
+
+{% schema %}
+{
+ "name": "Black Month konfigurator",
+ "tag": "section",
+ "settings": [
+  {"type":"text","id":"eyebrow","label":"Nadtytuł","default":"Black Month · zbuduj swój zestaw"},
+  {"type":"text","id":"title_1","label":"Tytuł, linia 1","default":"Im więcej,"},
+  {"type":"text","id":"title_2","label":"Tytuł, linia 2 (niebieska)","default":"tym taniej."},
+  {"type":"textarea","id":"lead","label":"Opis","default":"Do −50% na wszystkie produkty: peptydy NL i nutraceutyki razem. Liczy się wartość koszyka, a rabat nalicza się sam, bez kodu."},
+  {"type":"text","id":"name_all","label":"Nagłówek listy produktów","default":"Wszystkie produkty"},
+  {"type":"text","id":"tiers","label":"Progi (kwota w zł : rabat %)","info":"Muszą być identyczne z rabatami automatycznymi „Black Month −X%” w Shopify.","default":"400:10,600:20,1000:25,2000:30,3000:35,4000:40,5000:45,6000:50"},
+  {"type":"text","id":"chips","label":"Szybkie ilości w okienku","default":"1,2,3,5,9,13,17,21,26"},
+  {"type":"header","content":"Produkty (obie kolekcje trafiają na jedną listę)"},
+  {"type":"collection","id":"col_pep","label":"Kolekcja 1"},
+  {"type":"collection","id":"col_nut","label":"Kolekcja 2"}
+ ],
+ "presets": [{"name":"Black Month konfigurator"}]
+}
+{% endschema %}
