@@ -335,7 +335,7 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 <body><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NLS27RR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>window.SGA={
  slug:"jelita",store:"https://synthagenlabs.com",promoEnd:"2026-12-01T00:00:00+01:00",
- tiers:[[2,5],[4,10],[6,15],[8,20],[11,25],[15,30]],
+ tiers:[[400,10],[600,20],[1000,25],[2000,30],[3000,35],[4000,40],[5000,45],[6000,50]],
  products:{gb:{v:57351587299703,p:209,h:"gut-balance"},pb:{v:57354656121207,p:209,h:"pure-butyrate-sodium-butyrate"}},
  opts:[
   {key:"gb-30",short:"GUT BALANCE™ · 30 dni",items:[["gb",1]],days:30},
@@ -623,8 +623,8 @@ var C=window.SGA,d=document,q=function(s,r){return (r||d).querySelector(s)},qa=f
 var onStore=/(^|\.)synthagenlabs\.com$/.test(location.hostname);
 function zl(v){var s=(Math.round(v*100)/100).toFixed(2).split('.');return s[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+s[1]+' zł'}
 function promo(){return C.tiers&&C.tiers.length&&Date.now()<Date.parse(C.promoEnd)}
-function pct(units){var p=0;if(!promo())return 0;C.tiers.forEach(function(t){if(units>=t[0])p=t[1]});return p}
-function calc(o){var u=0,base=0;o.items.forEach(function(it){var pr=C.products[it[0]];u+=it[1];base+=pr.p*it[1]});var p=pct(u);return {units:u,base:base,pct:p,price:base*(1-p/100),day:base*(1-p/100)/o.days}}
+function pct(v){var p=0;if(!promo())return 0;C.tiers.forEach(function(t){if(v>=t[0])p=t[1]});return p}
+function calc(o){var u=0,base=0;o.items.forEach(function(it){var pr=C.products[it[0]];u+=it[1];base+=pr.p*it[1]});var p=pct(base);return {units:u,base:base,pct:p,price:base*(1-p/100),day:base*(1-p/100)/o.days}}
 function link(o){return C.store+'/cart/'+o.items.map(function(it){return C.products[it[0]].v+':'+it[1]}).join(',')+'?attributes[advertorial]='+encodeURIComponent(C.slug)+'&ref=advertorial'}
 var cur=null;
 function paint(){
@@ -633,7 +633,7 @@ function paint(){
     q('[data-pd]',el).textContent=zl(c.day)+' dziennie · '+o.days+' dni';});
   if(cur!==null)pick(cur,true);
   var bm=q('[data-promo]');if(bm)bm.hidden=!promo();
-  qa('[data-tiers]').forEach(function(ul){ul.innerHTML=C.tiers.map(function(t){return '<li>od '+t[0]+' szt. <b>−'+t[1]+'%</b></li>'}).join('')});
+  qa('[data-tiers]').forEach(function(ul){ul.innerHTML=C.tiers.map(function(t){return '<li>od '+String(t[0]).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0')+'\u00a0zł <b>−'+t[1]+'%</b></li>'}).join('')});
 }
 function pick(i,silent){cur=i;var o=C.opts[i],c=calc(o);
   qa('.opt').forEach(function(el){el.setAttribute('aria-checked',+el.dataset.i===i?'true':'false')});
@@ -701,7 +701,7 @@ if(promo()){
   /* 3. baner przed wejściem produktu */
   var rv=q('.reveal');
   if(rv){var bd=d.createElement('div');bd.className='bmband g';
-    bd.innerHTML='<div class="in col"><div><span class="mono">Black Month · do 30.11</span><p>Im więcej słoików, tym wyższy rabat: <b>do −'+maxP+'%</b>. Rabat nalicza się sam w koszyku.</p></div><a class="cta" href="#oferta" data-bm="band"><span>Przejdź do oferty</span><i aria-hidden="true">↓</i></a></div>';
+    bd.innerHTML='<div class="in col"><div><span class="mono">Black Month · do 30.11</span><p>Im większy koszyk, tym większy rabat: <b>do −'+maxP+'%</b>. Rabat nalicza się sam w koszyku.</p></div><a class="cta" href="#oferta" data-bm="band"><span>Przejdź do oferty</span><i aria-hidden="true">↓</i></a></div>';
     rv.parentNode.insertBefore(bd,rv);q('[data-bm="band"]',bd).addEventListener('click',function(e){trk('band')();go(e)})}
   /* 4. w ofercie: link do konfiguratora */
   var buy=q('.offer .buy');
