@@ -592,6 +592,7 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 <h2 class="h2">TWÓJ MOMENT NA ZMIANĘ</h2>
 <p>Nie odkładaj decyzji. Wybierz pakiet i zacznij działać już dziś — im dłuższy plan, tym większa oszczędność.</p>
 <ul class="tiers" data-promo="" data-tiers=""></ul>
+<div class="rdr" data-promo="" style="margin:18px auto 0;max-width:660px;border:2px dashed var(--btn);border-radius:16px;background:var(--soft);padding:16px 18px;text-align:left;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1 1 280px"><div style="font:700 11px/1.2 var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--btn)">Podziękowanie za przeczytanie</div><div style="margin-top:6px;color:var(--ink);font-size:16px;line-height:1.45">Poza rabatem Black Month dajemy Ci <b>dodatkowe −10%</b> z kodem <b>CZASNAZMIANE</b>. Kod łączy się z promocją, więc kupisz nawet <b>55% taniej</b>. Po kliknięciu „Zamawiam” dodamy go do koszyka automatycznie.</div></div><button type="button" onclick="try{navigator.clipboard.writeText('CZASNAZMIANE')}catch(e){};this.lastChild.textContent='skopiowano'" style="flex:0 0 auto;cursor:pointer;border:0;border-radius:12px;background:var(--btn);color:#fff;padding:12px 16px;font:700 15px/1 var(--fm);letter-spacing:.06em">CZASNAZMIANE <span style="display:block;margin-top:5px;font:600 10px/1 var(--fm);letter-spacing:.12em;text-transform:uppercase;opacity:.8">kopiuj</span></button></div>
 </div>
 <div aria-label="Wybierz zestaw" class="opts" role="radiogroup">
 <div aria-checked="false" class="opt" data-i="0" role="radio" tabindex="0">
@@ -616,7 +617,7 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 <li><svg fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 16 16"><path d="m3 8.5 3 3 7-7"></path></svg>Produkcja w UE</li>
 <li><svg fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 16 16"><path d="m3 8.5 3 3 7-7"></path></svg>90 dni gwarancji zwrotu</li>
 </ul>
-<p class="fine">Ceny z rabatem Black Month obowiązują do 30.11.2026. Rabat nalicza się automatycznie w koszyku, ostateczną kwotę zobaczysz przed płatnością.</p>
+<p class="fine">Ceny z rabatem Black Month obowiązują do 30.11.2026. Rabat nalicza się automatycznie w koszyku, kod CZASNAZMIANE daje dodatkowe −10% i łączy się z rabatem Black Month. Ostateczną kwotę zobaczysz przed płatnością.</p>
 </div>
 <div class="guar"><img alt="90 dni bez ryzyka" height="274" loading="lazy" src="../img/seal90.png" width="552"/><p><b>90 dni gwarancji zwrotu.</b> Tyle samo, ile trwa protokół zdjęć. Daj sobie czas na regularną suplementację i porównanie, a potem zdecyduj. Wypróbuj formułę zgodnie z warunkami gwarancji.</p></div>
 </div></section>
@@ -674,7 +675,7 @@ function zl(v){var s=(Math.round(v*100)/100).toFixed(2).split('.');return s[0].r
 function promo(){return C.tiers&&C.tiers.length&&Date.now()<Date.parse(C.promoEnd)}
 function pct(v){var p=0;if(!promo())return 0;C.tiers.forEach(function(t){if(v>=t[0])p=t[1]});return p}
 function calc(o){var u=0,base=0;o.items.forEach(function(it){var pr=C.products[it[0]];u+=it[1];base+=pr.p*it[1]});var p=pct(base);return {units:u,base:base,pct:p,price:base*(1-p/100),day:base*(1-p/100)/o.days}}
-function link(o){return C.store+'/cart/'+o.items.map(function(it){return C.products[it[0]].v+':'+it[1]}).join(',')+'?attributes[advertorial]='+encodeURIComponent(C.slug)+'&ref=advertorial'}
+function link(o){return C.store+'/cart/'+o.items.map(function(it){return C.products[it[0]].v+':'+it[1]}).join(',')+'?attributes[advertorial]='+encodeURIComponent(C.slug)+'&ref=advertorial&discount=CZASNAZMIANE'}
 var cur=null;
 function paint(){
   qa('.opt').forEach(function(el){var o=C.opts[+el.dataset.i],c=calc(o);
@@ -750,7 +751,7 @@ if(promo()){
   /* 3. baner przed wejściem produktu */
   var rv=q('.reveal');
   if(rv){var bd=d.createElement('div');bd.className='bmband g';
-    bd.innerHTML='<div class="in col"><div><span class="mono">Black Month · do 30.11</span><p>Im większy koszyk, tym większy rabat: <b>do −'+maxP+'%</b>. Rabat nalicza się sam w koszyku.</p></div><a class="cta" href="#oferta" data-bm="band"><span>Przejdź do oferty</span><i aria-hidden="true">↓</i></a></div>';
+    bd.innerHTML='<div class="in col"><div><span class="mono">Black Month · do 30.11</span><p>Im większy koszyk, tym większy rabat: <b>do −'+maxP+'%</b>. Rabat nalicza się sam w koszyku, a dla czytelników dodatkowe <b>−10% z kodem CZASNAZMIANE</b> (razem nawet −55%).</p></div><a class="cta" href="#oferta" data-bm="band"><span>Przejdź do oferty</span><i aria-hidden="true">↓</i></a></div>';
     rv.parentNode.insertBefore(bd,rv);q('[data-bm="band"]',bd).addEventListener('click',function(e){trk('band')();go(e)})}
   /* 4. w ofercie: link do konfiguratora */
   var buy=q('.offer .buy');
