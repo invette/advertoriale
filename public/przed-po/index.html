@@ -11,6 +11,7 @@
 <meta content="Mniej oznak zmęczenia, świeższy wygląd i zupełnie nowa pewność siebie. Oto plan metamorfozy, którego nie możesz przegapić." name="description"/>
 <meta content="noindex" name="robots"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=SUSE+Mono:wght@500;600;700&amp;family=Unbounded:wght@700;800;900&amp;display=swap" rel="stylesheet"/>
+
 <style>/* Synthagen Journal: advertorial. Artykuł w kolumnie 680px, przerywany pełnymi pasami (produkt, oferta). */
 :root{
   --ink:#0A0F1F;--body:#3F4766;--muted:#5B6382;--line:#DDE2F0;--bg:#FFFFFF;--bg2:#F2F4FA;--soft:#E6EBFF;--paper:#F5F7FF;
@@ -324,6 +325,14 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 .bmlink{font-size:14px;line-height:1.45;color:var(--ink);text-decoration:none;text-align:center}
 .bmlink b{color:var(--btn);font-weight:700}
 .bmpill{flex:none;background:#05070F;color:#fff;border-radius:8px;padding:7px 8px;font:800 11px/1 var(--fd);letter-spacing:.02em}
+
+/* Clean comparison: no blue border, no grey outer surround. */
+.cmpbox{background:transparent;border:0;box-shadow:none;padding:0;border-radius:0;margin:24px 0}
+.cmpbox .pair2{gap:16px}
+.cmpbox .frame.photo,.cmpbox .frame.now.photo{border:0!important;box-shadow:none!important;background:transparent!important;border-radius:16px;overflow:hidden;transform:none!important}
+.cmpbox .frame.photo img{width:100%;height:100%;object-fit:cover;border-radius:16px}
+.cmpbox .frame.photo small{background:rgba(255,255,255,.94);border:0;box-shadow:none}
+@media(max-width:480px){.cmpbox .pair2{gap:10px}.cmpbox .frame.photo small{font-size:9px}}
 </style>
 <meta content="Nie wierz cudzym zdjęciom przed i po | Synthagen Journal" property="og:title"/>
 <meta content="Zdjęcia przed i po w reklamach niczego nie dowodzą. Pokazujemy, jak w 5 minut zrobić własne i porównać skórę, włosy i paznokcie po 30, 60 i 90 dniach." property="og:description"/>
@@ -340,6 +349,9 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 .frame svg{width:40px;height:40px;color:var(--blue)}
 .frame span{font-size:13.5px;line-height:1.35;color:var(--ink)}
 .frame small{position:absolute;left:12px;right:12px;bottom:12px;font:600 10px/1.2 var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--btn)}
+.frame.photo{padding:0;overflow:hidden;border-style:solid;background:#fff}
+.frame.photo img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.frame.photo small{left:10px;right:10px;bottom:10px;background:rgba(255,255,255,.92);border-radius:999px;padding:7px 10px}
 .hero-art .frame.b{transform:rotate(2deg);border-color:var(--btn);background:#fff;box-shadow:0 24px 50px rgba(31,59,255,.16)}
 .hero-art .frame.a{transform:rotate(-2deg)}
 .hero-art .tag{z-index:3}
@@ -377,6 +389,25 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 .tbl table.dose{min-width:0}
 .dose td:nth-child(2),.dose td:nth-child(3){font-variant-numeric:tabular-nums;white-space:nowrap}
 .dose .grp td{background:var(--bg2);font:600 10px/1.2 var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* Finalna korekta obramowan: obie galerie bez niebieskich ramek i tla. */
+.hero-art.fr .frame.a.photo,
+.hero-art.fr .frame.b.photo,
+.cmpbox .pair2 .frame.photo,
+.cmpbox .pair2 .frame.now.photo {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+.hero-art.fr .frame.a.photo,
+.hero-art.fr .frame.b.photo { transform: none !important; }
+.cmpbox { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; }
+.cmpbox .pair2 {gap:16px !important;}
+.hero-art.fr .frame.photo img,
+.cmpbox .pair2 .frame.photo img {border:0 !important; border-radius:18px !important; display:block !important; width:100% !important; height:100% !important; object-fit:cover !important;}
 </style>
 <script>window.SGA={
  slug:"przed-po",store:"https://synthagenlabs.com",promoEnd:"2026-12-01T00:00:00+01:00",
@@ -402,8 +433,8 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 <div class="by"><span aria-hidden="true" class="av">SG</span><span><b>Redakcja Synthagen Labs</b>Materiał reklamowy marki Synthagen · listopad 2026</span></div>
 </div>
 <div aria-hidden="true" class="hero-art fr">
-<div class="frame a"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span>Tu będzie Twoje zdjęcie</span><small>Twoje zdjęcie · dzień 1</small></div>
-<div class="frame b"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span>I tu, za 90 dni</span><small>Twoje zdjęcie · dzień 90</small></div>
+<div class="frame a photo"><img alt="Porównanie dzień 1" src="../img/pp2-1.webp"/><small>Dzień 1</small></div>
+<div class="frame b photo"><img alt="Porównanie dzień 90" src="../img/pp2-2.webp"/><small>Dzień 90</small></div>
 <div class="tag t1"><small>Włos</small>ok. 1 cm na miesiąc</div>
 <div class="tag t2"><small>Paznokieć</small>ok. 3 mm na miesiąc</div>
 <div class="tag t3"><small>Naskórek</small>kilka tygodni na wymianę</div>
@@ -484,19 +515,14 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 </section>
 <section class="sec">
 <span class="kicker mono">Co porównać i kiedy</span>
-<h2 class="h2">Dzień 1 obok dnia 30, 60 <em>i 90</em></h2>
-<p>Wybierz dzień i zobacz, na co patrzeć, gdy położysz zdjęcia obok siebie.</p>
+<h2 class="h2">DZIEŃ 1 <em>VS DZIEŃ 90</em></h2>
+<p>Porównanie zdjęć z dnia 1 i dnia 90.</p>
 <div class="cmpbox">
-<div aria-label="Dzień porównania" class="days" role="tablist">
-<button aria-selected="false" data-day="30" role="tab" type="button">Dzień 30</button>
-<button aria-selected="false" data-day="60" role="tab" type="button">Dzień 60</button>
-<button aria-selected="true" data-day="90" role="tab" type="button">Dzień 90</button>
-</div>
 <div aria-hidden="true" class="pair2">
-<div class="frame"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span>Zdjęcie z albumu „Dzień 1”</span><small>Twoje zdjęcie · dzień 1</small></div>
-<div class="frame now"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><span data-daytxt="">To samo ujęcie dziś</span><small data-daylab="">Twoje zdjęcie · dzień 90</small></div>
+<div class="frame photo"><img alt="Album dzień 1" src="../img/pp2-1.webp"/><small>Dzień 1</small></div>
+<div class="frame now photo"><img alt="Album dzień 90" data-dayimg="" src="../img/pp2-2.webp"/><small data-daylab="">Dzień 90</small></div>
 </div>
-<div aria-live="polite" class="what" data-what=""></div>
+
 </div>
 </section>
 </div></main>
@@ -560,7 +586,7 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 <h2 class="h2">Budulec <em>i ochrona</em></h2>
 <p>Jeśli chcesz dołożyć do planu warstwę antyoksydacyjną, najlepszą parą dla NOVA CELLCARE™ jest PURE OXILLIGENCE™.</p>
 <div class="pair">
-<div class="im"><img alt="NOVA CELLCARE™" height="500" loading="lazy" src="../img/nc-p.webp" width="500"/><i>+</i><img alt="PURE OXILLIGENCE™" height="500" loading="lazy" src="../img/nc-oxi.webp" width="500"/></div>
+<div class="im"><img alt="NOVA CELLCARE™" height="500" loading="lazy" src="../img/nc-p.webp" width="500"/><i>+</i><img alt="PURE OXILLIGENCE™" height="500" loading="lazy" src="../img/gl-p-oxi.webp" width="500"/></div>
 <div style="display:grid;gap:12px">
 <p><b>PURE OXILLIGENCE™</b> to 400 mg NAC, 300 mg resweratrolu, 200 mg kwercetyny fitosomalnej, 8 mg astaksantyny i 4 ekstrakty roślinne. Te składniki nie mają dopuszczonych w UE oświadczeń zdrowotnych. Astaksantyna to karotenoid badany m.in. w kontekście skóry.</p>
 <ul>
@@ -606,7 +632,7 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 </div>
 <div aria-checked="false" class="opt" data-i="2" role="radio" tabindex="0">
 <span class="bd">Najwyższy rabat</span>
-<span class="im" style="display:flex"><img alt="" height="500" loading="lazy" src="../img/nc-p.webp" style="width:50%" width="500"/><img alt="" height="500" loading="lazy" src="../img/nc-oxi.webp" style="width:50%" width="500"/></span>
+<span class="im" style="display:flex"><img alt="" height="500" loading="lazy" src="../img/nc-p.webp" style="width:50%" width="500"/><img alt="" height="500" loading="lazy" src="../img/gl-p-oxi.webp" style="width:50%" width="500"/></span>
 <div><div class="nm">Para na 90 dni</div><div class="ds">3× NOVA CELLCARE™ + 3× PURE OXILLIGENCE™. Budulec i ochrona.</div><div class="pr" data-pr=""></div><div class="pd" data-pd=""></div></div>
 </div>
 </div>
@@ -658,15 +684,7 @@ h1 em,.h2 em{font-style:normal;color:var(--btn)}
 <script>(function(){
 var d=document,sh=[].slice.call(d.querySelectorAll('.shots button')),sc=d.querySelector('[data-shotcnt]');
 sh.forEach(function(b){b.addEventListener('click',function(){b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');var n=sh.filter(function(x){return x.getAttribute('aria-pressed')==='true'}).length;if(sc)sc.textContent=n===sh.length?'6 / 6 ujęć · gotowe, album „Dzień 1” zrobiony':n+' / '+sh.length+' ujęć'})});
-var W={
- "30":"<b>Dzień 30 · skóra</b>Porównaj twarz na wprost: suchość, ściąganie, koloryt w tym samym świetle. Zajrzyj do notatki ze skalą 1–5. Na włosy i paznokcie jest jeszcze za wcześnie: włos urósł średnio ok. 1 cm, paznokieć ok. 3 mm.",
- "60":"<b>Dzień 60 · włosy</b>Porównaj przedziałek z góry, linię czoła i zdjęcie włosów ze szczotki na białej kartce. Włos urósł średnio ok. 2 cm. Patrz na ten sam fragment głowy, w tym samym świetle.",
- "90":"<b>Dzień 90 · wszystko</b>Połóż obok siebie wszystkie 6 ujęć. Przy paznokciach patrz na nową część płytki przy skórce, która urosła średnio o ok. 9 mm. Uzupełnij notatkę i porównaj z dniem 1. Brak różnicy to też wynik."
-};
-var tabs=[].slice.call(d.querySelectorAll('.days button')),what=d.querySelector('[data-what]'),lab=d.querySelector('[data-daylab]');
-function sel(day){tabs.forEach(function(t){t.setAttribute('aria-selected',t.dataset.day===day?'true':'false')});if(what)what.innerHTML=W[day];if(lab)lab.textContent='Twoje zdjęcie · dzień '+day}
-tabs.forEach(function(t){t.addEventListener('click',function(){sel(t.dataset.day)})});
-sel('90');
+
 })();</script>
 <script>(function(){
 var C=window.SGA,d=document,q=function(s,r){return (r||d).querySelector(s)},qa=function(s,r){return [].slice.call((r||d).querySelectorAll(s))};
